@@ -1,0 +1,2574 @@
+/* Boardular: todos os estilos da biblioteca ficam na camada `boardular`. Qualquer CSS fora de camada (o seu), a `className` e o `style`
+   do painel e de cada card ficam sempre acima destes, sem precisar de seletor mais forte nem de !important. */
+@layer boardular {
+/* ============================================================
+   TOKENS: superfícies, bordas, texto, ação e a escala de texto (rem sobre html de 14px).
+   Valem no painel, no catálogo e no balão de dica.
+   ============================================================ */
+.bd,
+.bd-dialogo,
+.bd-dica {
+  /* vidro fumê: superfícies escuras translúcidas que desfocam as luzes do fundo; a borda acende no canto de cima/esquerda
+     e apaga no meio, como a quina de uma placa de vidro. --bd-superficie é o tom sólido equivalente ao card
+     (usado nos traços que separam as séries dos gráficos). */
+  --bd-superficie: #2b2b31;
+  --bd-superficie-suave: rgba(255, 255, 255, 0.06);
+  --bd-superficie-realce: rgba(255, 255, 255, 0.1);
+  --bd-borda: rgba(255, 255, 255, 0.1);
+  --bd-borda-forte: rgba(255, 255, 255, 0.18);
+  --bd-vidro: rgba(58, 58, 66, 0.38);
+  --bd-vidro-forte: rgba(72, 72, 82, 0.55);
+  --bd-vidro-leve: rgba(255, 255, 255, 0.05);
+  --bd-vidro-borda: rgba(255, 255, 255, 0.09);
+  --bd-vidro-brilho: linear-gradient(155deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.02) 45%, rgba(255, 255, 255, 0.05) 100%);
+  --bd-desfoque: blur(28px) saturate(150%);
+  --bd-desfoque-leve: blur(16px) saturate(140%);
+  --bd-aro: inset 1px 1px 0 rgba(255, 255, 255, 0.22), inset -1px -1px 0 rgba(255, 255, 255, 0.06);
+  --bd-sombra: var(--bd-aro), inset 0 0 32px rgba(255, 255, 255, 0.03), 0 24px 48px -16px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --bd-sombra-leve: var(--bd-aro), 0 6px 16px -6px rgba(0, 0, 0, 0.45);
+  --bd-sombra-flutuante: var(--bd-aro), 0 40px 90px -20px rgba(0, 0, 0, 0.75);
+  --bd-texto: #f5f5f7;
+  --bd-texto-secundario: rgba(255, 255, 255, 0.86);
+  --bd-texto-suave: rgba(255, 255, 255, 0.74);
+  --bd-texto-auxiliar: rgba(255, 255, 255, 0.58);
+  --bd-texto-inverso: #ffffff;
+  --bd-neutro-claro: rgba(255, 255, 255, 0.4);
+  --bd-acao: #3b82f6;
+  --bd-acao-forte: #2563eb;
+  --bd-acao-clara: #93c5fd;
+  --bd-acao-borda: rgba(147, 197, 253, 0.35);
+  --bd-acao-fundo: rgba(59, 130, 246, 0.18);
+  --bd-marinho: #dbeafe;
+
+  --bd-fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bd-raio: 24px;
+  --bd-foco: rgba(37, 99, 235, 0.18);
+  --bd-botao-borda-hover: rgba(255, 255, 255, 0.16);
+  --bd-faixa-fundo: linear-gradient(155deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.08));
+  --bd-faixa-borda: rgba(147, 197, 253, 0.25);
+  --bd-concluir-sombra: 0 4px 14px -2px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --bd-adicionar-hover: rgba(59, 130, 246, 0.22);
+  --bd-alvo-sombra: inset 0 0 24px rgba(59, 130, 246, 0.15);
+  --bd-dica-sombra: var(--bd-aro), 0 12px 30px -8px rgba(0, 0, 0, 0.6);
+  --bd-dialogo-fundo: var(--bd-vidro-brilho), rgba(38, 38, 44, 0.72);
+  --bd-veu: rgba(0, 0, 0, 0.45);
+  /* modo de edição: versões baratas de desenhar (os cards tremem e deslizam o tempo todo) */
+  --bd-edicao-card-fundo: rgba(48, 48, 56, 0.92);
+  --bd-edicao-card-borda: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.07) rgba(255, 255, 255, 0.07) rgba(255, 255, 255, 0.2);
+  --bd-edicao-card-sombra: none;
+  --bd-edicao-botao-fundo: rgba(72, 72, 82, 0.95);
+  --bd-edicao-cabecalho-fundo: var(--bd-vidro-brilho), rgba(38, 38, 46, 0.9);
+
+  color-scheme: dark;
+
+  --bd-xs: 0.875rem;
+  --bd-sm: 0.9375rem;
+  --bd-md: 1rem;
+  --bd-lg: 1.125rem;
+  --bd-xl: 1.25rem;
+  --bd-2xl: 1.5rem;
+  --bd-3xl: 1.75rem;
+
+  /* entrada do conteúdo dos cards: tudo começa em --bd-inicio; os itens em sequência espalham --bd-passo por item (até --bd-folga);
+     desenhos contínuos duram --bd-varre */
+  --bd-inicio: 0.1s;
+  --bd-dur: 0.35s;
+  --bd-passo: 0.05s;
+  --bd-folga: 0.3s;
+  --bd-varre: 0.6s;
+  --bd-curva: cubic-bezier(0.4, 0, 0.2, 1);
+  --bd-hover: 0.16s ease;
+
+  font-family: var(--bd-fonte);
+  color: var(--bd-texto);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TEMA ARGILA (claymorphism): ligado por data-bd-tema="clay" em qualquer ancestral (o demo usa o <html>, que também
+   alcança o balão de dica, pendurado direto no <body>). Superfícies opacas em tons pastel que parecem infladas: luz
+   interna no canto de cima/esquerda, sombra interna no de baixo/direita e uma sombra externa macia e deslocada.
+   Sem desfoque nenhum; só os tokens mudam.
+   ============================================================ */
+[data-bd-tema='clay'] :is(.bd, .bd-dialogo, .bd-dica) {
+  --bd-superficie: #f2eefa;
+  --bd-superficie-suave: rgba(124, 104, 196, 0.07);
+  --bd-superficie-realce: rgba(124, 104, 196, 0.14);
+  --bd-borda: rgba(124, 104, 196, 0.14);
+  --bd-borda-forte: rgba(124, 104, 196, 0.26);
+  --bd-vidro: #f2eefa;
+  --bd-vidro-forte: #f8f6fd;
+  --bd-vidro-leve: #ebe6f6;
+  --bd-vidro-borda: rgba(255, 255, 255, 0.7);
+  --bd-vidro-brilho: linear-gradient(145deg, #f9f7ff 0%, #f0ecf9 55%, #e9e3f6 100%);
+  --bd-desfoque: none;
+  --bd-desfoque-leve: none;
+  --bd-aro: inset 2px 2px 4px rgba(255, 255, 255, 0.85), inset -2px -2px 5px rgba(124, 104, 196, 0.16);
+  --bd-sombra: 18px 22px 40px -6px rgba(104, 84, 176, 0.34), -10px -10px 24px rgba(255, 255, 255, 0.75), inset 10px 10px 18px rgba(255, 255, 255, 0.95), inset -12px -14px 24px rgba(124, 104, 196, 0.24);
+  --bd-sombra-leve: 6px 8px 14px -2px rgba(104, 84, 176, 0.3), -4px -4px 10px rgba(255, 255, 255, 0.8), inset 3px 3px 6px rgba(255, 255, 255, 0.95), inset -4px -4px 8px rgba(124, 104, 196, 0.22);
+  --bd-sombra-flutuante: 24px 24px 60px rgba(84, 64, 160, 0.32), inset 8px 8px 16px rgba(255, 255, 255, 0.75), inset -8px -8px 18px rgba(124, 104, 196, 0.18);
+  --bd-texto: #2b2545;
+  --bd-texto-secundario: #3d3659;
+  --bd-texto-suave: #575075;
+  --bd-texto-auxiliar: #776f95;
+  --bd-texto-inverso: #ffffff;
+  --bd-neutro-claro: #a39cc0;
+  --bd-acao: #6d5dfc;
+  --bd-acao-forte: #5646e0;
+  --bd-acao-clara: #b3a8ff;
+  --bd-acao-borda: rgba(109, 93, 252, 0.3);
+  --bd-acao-fundo: rgba(109, 93, 252, 0.12);
+  --bd-marinho: #3b2f8f;
+
+  --bd-fonte: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bd-raio: 30px;
+  --bd-foco: rgba(109, 93, 252, 0.25);
+  --bd-botao-borda-hover: rgba(255, 255, 255, 0.95);
+  --bd-faixa-fundo: linear-gradient(145deg, #f1edff, #e5defb);
+  --bd-faixa-borda: rgba(255, 255, 255, 0.75);
+  --bd-concluir-sombra: 4px 4px 10px rgba(109, 93, 252, 0.35), inset 2px 2px 4px rgba(255, 255, 255, 0.35), inset -2px -2px 4px rgba(40, 20, 140, 0.25);
+  --bd-adicionar-hover: rgba(109, 93, 252, 0.12);
+  --bd-alvo-sombra: inset 5px 5px 12px rgba(118, 98, 182, 0.18), inset -5px -5px 12px rgba(255, 255, 255, 0.7);
+  --bd-dica-sombra: 6px 6px 16px rgba(84, 64, 160, 0.25), var(--bd-aro);
+  --bd-dialogo-fundo: var(--bd-vidro-brilho);
+  --bd-veu: rgba(60, 45, 120, 0.22);
+  /* edição: cor única e a "clay" desenhada só com as cores da borda e uma sombra sem desfoque, baratas de redesenhar */
+  --bd-edicao-card-fundo: #f2eefa;
+  --bd-edicao-card-borda: rgba(255, 255, 255, 0.95) rgba(124, 104, 196, 0.22) rgba(124, 104, 196, 0.22) rgba(255, 255, 255, 0.95);
+  --bd-edicao-card-sombra: 6px 6px 0 rgba(118, 98, 182, 0.14);
+  --bd-edicao-botao-fundo: #f8f6fd;
+  --bd-edicao-cabecalho-fundo: var(--bd-vidro-brilho);
+
+  color-scheme: light;
+}
+
+.bd *,
+.bd-dialogo * {
+  box-sizing: border-box;
+}
+
+@property --bd-fe {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --bd-fd {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* ============================================================
+   CABEÇALHO E BOTÕES
+   ============================================================ */
+.bd-cabecalho {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  background: var(--bd-vidro-brilho), var(--bd-vidro);
+  -webkit-backdrop-filter: var(--bd-desfoque);
+  backdrop-filter: var(--bd-desfoque);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra);
+  border-radius: var(--bd-raio);
+}
+.bd-cabecalho__topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.bd-cabecalho__titulo {
+  flex: 1;
+  min-width: 280px;
+}
+.bd-cabecalho__titulo h1 {
+  margin: 0 0 0.25rem;
+  font-size: var(--bd-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bd-cabecalho__titulo p {
+  margin: 0;
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+.bd-cabecalho__filtros {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bd-superficie-realce);
+}
+.bd-filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-suave);
+  white-space: nowrap;
+}
+.bd-filtro select {
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-weight: 400;
+  border: 1px solid var(--bd-vidro-borda);
+  border-radius: 999px;
+  background: var(--bd-vidro);
+  -webkit-backdrop-filter: var(--bd-desfoque-leve);
+  backdrop-filter: var(--bd-desfoque-leve);
+  box-shadow: var(--bd-sombra-leve);
+  color: var(--bd-texto);
+  outline: none;
+  cursor: pointer;
+}
+.bd-filtro select option {
+  background: var(--bd-superficie);
+  color: var(--bd-texto);
+}
+.bd-filtro select:focus {
+  border-color: var(--bd-acao);
+  box-shadow: 0 0 0 3px var(--bd-foco), var(--bd-sombra-leve);
+}
+
+.bd-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+.bd-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 1.15rem;
+  font: inherit;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--bd-texto-secundario);
+  background: var(--bd-vidro);
+  -webkit-backdrop-filter: var(--bd-desfoque-leve);
+  backdrop-filter: var(--bd-desfoque-leve);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra-leve);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.bd-botao:hover {
+  background: var(--bd-vidro-forte);
+  border-color: var(--bd-botao-borda-hover);
+  box-shadow: var(--bd-sombra);
+  color: var(--bd-texto);
+}
+.bd :focus-visible,
+.bd-dialogo :focus-visible {
+  outline: 2px solid var(--bd-acao);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   FAIXA DO MODO DE EDIÇÃO
+   ============================================================ */
+.bd-edicao {
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.bd-edicao__dentro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bd-faixa-fundo);
+  -webkit-backdrop-filter: var(--bd-desfoque);
+  backdrop-filter: var(--bd-desfoque);
+  border: 1px solid var(--bd-faixa-borda);
+  box-shadow: var(--bd-sombra-leve);
+  border-radius: 12px;
+  color: var(--bd-marinho);
+  font-size: var(--bd-xs);
+}
+.bd-edicao__acoes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bd-edicao button {
+  padding: 0.5rem 0.95rem;
+  font: inherit;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.bd-edicao button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.bd-edicao__restaurar {
+  background: var(--bd-vidro-forte);
+  color: var(--bd-texto-secundario);
+  border: 1px solid var(--bd-borda-forte);
+}
+.bd-edicao__restaurar:hover:not(:disabled) {
+  background: var(--bd-superficie);
+  color: var(--bd-texto);
+}
+.bd-edicao__concluir {
+  background: var(--bd-acao);
+  box-shadow: var(--bd-concluir-sombra);
+  color: var(--bd-texto-inverso);
+  border: none;
+}
+.bd-edicao__adicionar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bd-vidro-forte);
+  color: var(--bd-acao);
+  border: 1px solid var(--bd-acao-borda);
+}
+.bd-edicao__adicionar:hover {
+  background: var(--bd-adicionar-hover);
+  border-color: var(--bd-acao-clara);
+}
+
+/* ============================================================
+   GRADE: células iguais; cada card ocupa um número de células
+   ============================================================ */
+.bd-grade {
+  display: grid;
+  grid-template-columns: repeat(var(--bd-colunas, 4), minmax(0, 1fr));
+  grid-auto-rows: 160px;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.bd-item {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--bd-raio);
+}
+.bd-item > .bd-card {
+  height: 100%;
+}
+/* o conteúdo só se anima quando o card termina de chegar e aparece na tela */
+.bd-item.is-espera *:not(.bd-loader) {
+  animation-play-state: paused !important;
+}
+.bd-vazio {
+  grid-column: 1 / -1;
+  margin: 0;
+  align-self: center;
+  text-align: center;
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+
+/* ---------- modo de edição: o card inteiro é a alça de mover ---------- */
+.bd-item[data-editando] {
+  touch-action: none;
+}
+.bd-item[data-editando] > .bd-card,
+.bd-item[data-editando] > .bd-card * {
+  pointer-events: none;
+}
+/* onde o card arrastado vai cair se for solto agora */
+.bd-alvo {
+  border-radius: var(--bd-raio);
+  border: 2px dashed var(--bd-acao-clara);
+  background: var(--bd-acao-fundo);
+  box-shadow: var(--bd-alvo-sombra);
+  pointer-events: none;
+}
+.bd-contorno {
+  position: absolute;
+  inset: -4px;
+  z-index: 4;
+  pointer-events: none;
+  border: 1.5px dashed var(--bd-acao-clara);
+  border-radius: calc(var(--bd-raio) + 4px);
+}
+.bd-controles {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+}
+.bd-controles button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--bd-vidro-forte);
+  -webkit-backdrop-filter: var(--bd-desfoque-leve);
+  backdrop-filter: var(--bd-desfoque-leve);
+  box-shadow: var(--bd-sombra-leve);
+  color: var(--bd-texto-secundario);
+  border: 1px solid var(--bd-vidro-borda);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bd-controles button:hover {
+  background: var(--bd-acao);
+  color: var(--bd-texto-inverso);
+  border-color: var(--bd-acao);
+}
+
+/* alças de redimensionar: o centro de cada uma cai sobre a linha do contorno */
+.bd-alca {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+.bd-alca i {
+  background: var(--bd-acao);
+  opacity: 0.6;
+  border-radius: 2px;
+}
+.bd-alca[data-alca='d'],
+.bd-alca[data-alca='e'] {
+  top: 18%;
+  bottom: 18%;
+  width: 18px;
+  cursor: ew-resize;
+}
+.bd-alca[data-alca='d'] {
+  right: -12px;
+}
+.bd-alca[data-alca='e'] {
+  left: -12px;
+}
+.bd-alca[data-alca='d'] i,
+.bd-alca[data-alca='e'] i {
+  width: 3px;
+  height: 28px;
+  max-height: 100%;
+}
+.bd-alca[data-alca='b'],
+.bd-alca[data-alca='c'] {
+  left: 18%;
+  right: 18%;
+  height: 18px;
+  cursor: ns-resize;
+}
+.bd-alca[data-alca='b'] {
+  bottom: -12px;
+}
+.bd-alca[data-alca='c'] {
+  top: -12px;
+}
+.bd-alca[data-alca='b'] i,
+.bd-alca[data-alca='c'] i {
+  width: 28px;
+  max-width: 100%;
+  height: 3px;
+}
+/* cantos: um arco em L que contorna a quina do card */
+.bd-alca[data-alca='db'],
+.bd-alca[data-alca='ec'],
+.bd-alca[data-alca='dc'],
+.bd-alca[data-alca='eb'] {
+  width: 22px;
+  height: 22px;
+}
+.bd-alca[data-alca='db'] i,
+.bd-alca[data-alca='ec'] i,
+.bd-alca[data-alca='dc'] i,
+.bd-alca[data-alca='eb'] i {
+  width: 10px;
+  height: 10px;
+  box-sizing: content-box;
+  background: transparent;
+  border: 0 solid var(--bd-acao);
+}
+.bd-alca[data-alca='db'] {
+  right: -11px;
+  bottom: -11px;
+  cursor: nwse-resize;
+}
+.bd-alca[data-alca='db'] i {
+  border-right-width: 3px;
+  border-bottom-width: 3px;
+  border-bottom-right-radius: 10px;
+  transform: translate(-1.5px, -1.5px);
+}
+.bd-alca[data-alca='ec'] {
+  left: -11px;
+  top: -11px;
+  cursor: nwse-resize;
+}
+.bd-alca[data-alca='ec'] i {
+  border-left-width: 3px;
+  border-top-width: 3px;
+  border-top-left-radius: 10px;
+  transform: translate(1.5px, 1.5px);
+}
+.bd-alca[data-alca='dc'] {
+  right: -11px;
+  top: -11px;
+  cursor: nesw-resize;
+}
+.bd-alca[data-alca='dc'] i {
+  border-right-width: 3px;
+  border-top-width: 3px;
+  border-top-right-radius: 10px;
+  transform: translate(-1.5px, 1.5px);
+}
+.bd-alca[data-alca='eb'] {
+  left: -11px;
+  bottom: -11px;
+  cursor: nesw-resize;
+}
+.bd-alca[data-alca='eb'] i {
+  border-left-width: 3px;
+  border-bottom-width: 3px;
+  border-bottom-left-radius: 10px;
+  transform: translate(1.5px, -1.5px);
+}
+/* as alças só aparecem no card sob o mouse (e no que está sendo redimensionado); em tela de toque ficam sempre à mostra */
+@media (hover: hover) {
+  .bd-item[data-editando] > .bd-alca {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .bd-item[data-editando]:hover > .bd-alca,
+  .bd-item[data-redimensionando] > .bd-alca {
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   MOLDURA DO CARD
+   ============================================================ */
+.bd-card {
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+  padding: 1.25rem 1.5rem;
+  background: var(--bd-vidro-brilho), var(--bd-vidro);
+  -webkit-backdrop-filter: var(--bd-desfoque);
+  backdrop-filter: var(--bd-desfoque);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra);
+  border-radius: var(--bd-raio);
+}
+/* em edição os cards tremem e deslizam sem parar, e refazer desfoque e sombras grandes de todos a cada quadro trava a página
+   (no Firefox, principalmente). Até a edição acabar, o vidro fica mais denso, sem desfoque, e a sombra fica curta e barata;
+   a borda iluminada continua. */
+.bd-item[data-editando] > .bd-card {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  /* cor única no lugar do gradiente, e a borda iluminada feita com as cores da borda em vez de sombras internas: o desenho
+     fica parecido e custa uma fração para redesenhar a cada quadro */
+  background: var(--bd-edicao-card-fundo);
+  box-shadow: var(--bd-edicao-card-sombra);
+  border-color: var(--bd-edicao-card-borda);
+  /* recortar o conteúdo nos cantos arredondados é o desenho mais caro de todos com os cards se mexendo (o Firefox refaz a máscara
+     a cada quadro); o conteúdo já cabe no card, então em edição o recorte sai */
+  overflow: visible;
+}
+.bd-item[data-editando] .bd-controles button {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--bd-edicao-botao-fundo);
+  box-shadow: var(--bd-aro);
+}
+.bd-item[data-editando] .bd-controles button:hover {
+  background: var(--bd-acao);
+}
+/* e nada mais da página desfoca o fundo durante a edição */
+.bd[data-editando] :is(.bd-cabecalho, .bd-edicao__dentro, .bd-botao, .bd-filtro select) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.bd[data-editando] .bd-cabecalho {
+  background: var(--bd-edicao-cabecalho-fundo);
+}
+.bd-card__titulo {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bd-card__espera {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bd-acao);
+  font-size: var(--bd-2xl);
+}
+.bd-card__espera:not(:has(.bd-loader)) {
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+.bd-loader {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border: 0.14em solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  opacity: 0.55;
+  animation: bd-gira 0.8s linear infinite;
+}
+@keyframes bd-gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.bd-rodape {
+  margin-top: auto;
+}
+.bd-apoio {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-bolinha {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  font-style: normal;
+}
+.bd-total {
+  font-size: var(--bd-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- número em roleta ---------- */
+.bd-roleta {
+  --bd-rolo: 1.2em;
+  display: inline-flex;
+  align-items: baseline;
+  line-height: var(--bd-rolo);
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+  vertical-align: baseline;
+}
+.bd-roleta__rolo {
+  display: inline-block;
+  height: var(--bd-rolo);
+  overflow: hidden;
+}
+.bd-roleta__pilha {
+  display: flex;
+  flex-direction: column;
+  transition: none;
+}
+.bd-roleta__pilha.is-girando {
+  will-change: transform;
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bd-roleta__digito {
+  display: block;
+  height: var(--bd-rolo);
+}
+.bd-roleta__digito::before,
+.bd-roleta__fixo::before {
+  content: attr(data-d);
+}
+.bd-roleta__rolo,
+.bd-roleta__fixo {
+  user-select: none;
+}
+
+/* ---------- texto de uma linha cortado: a borda esmaece e ele rola ao apontar o card ---------- */
+.bd-rolante {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bd-rolante.is-cortado {
+  text-overflow: clip;
+  --bd-fd: 1.6em;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--bd-fe), #000 calc(100% - var(--bd-fd)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 var(--bd-fe), #000 calc(100% - var(--bd-fd)), transparent 100%);
+}
+
+/* ---------- balão de dica ---------- */
+.bd-dica {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  padding: 5px 9px;
+  max-width: 320px;
+  border-radius: 8px;
+  background: var(--bd-vidro-forte);
+  -webkit-backdrop-filter: var(--bd-desfoque);
+  backdrop-filter: var(--bd-desfoque);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-dica-sombra);
+  color: var(--bd-texto);
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bd-dica__linha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bd-dica__linha i {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.bd-dica__item {
+  margin-top: 3px;
+  font-weight: 500;
+}
+.bd-dica__item span {
+  flex: 1;
+}
+.bd-dica__item strong {
+  margin-left: 12px;
+}
+.bd-dica__detalhe {
+  margin-top: 2px;
+  color: var(--bd-texto-auxiliar);
+  font-weight: 500;
+}
+
+/* ============================================================
+   INDICADOR E NÚMERO SOZINHO: o número no centro do card, o maior que couber
+   ============================================================ */
+.bd-indicador {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+.bd-indicador__linha {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+}
+.bd-indicador__valor {
+  font-size: var(--bd-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bd-indicador__valor.is-texto {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+  font-size: var(--bd-xl);
+}
+.bd-indicador__variacao {
+  font-size: var(--bd-xs);
+  font-weight: 700;
+  color: var(--bd-acao);
+}
+.bd-indicador__subtexto {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+}
+
+.bd-card.is-numero,
+.bd-card.is-serie-numero,
+.bd-card.is-indicador,
+.bd-card.is-contador {
+  container-type: inline-size;
+  align-items: center;
+  text-align: center;
+}
+:is(.is-numero, .is-serie-numero, .is-indicador, .is-contador) .bd-card__titulo {
+  align-self: flex-start;
+}
+:is(.is-numero, .is-serie-numero, .is-indicador, .is-contador) :is(.bd-total, .bd-indicador__valor:not(.is-texto)) {
+  font-size: clamp(1.125rem, calc(100cqi / (var(--n, 4) * 0.7)), 3.25rem);
+  line-height: 1.1;
+}
+:is(.is-numero, .is-serie-numero, .is-contador) .bd-total {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+:is(.is-numero, .is-serie-numero, .is-contador) .bd-rodape {
+  margin-top: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.is-indicador .bd-indicador {
+  width: 100%;
+  align-items: center;
+  gap: 0;
+}
+.is-indicador .bd-indicador__linha {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+  justify-content: center;
+  align-content: center;
+}
+.is-indicador .bd-indicador__valor.is-texto {
+  font-size: var(--bd-2xl);
+  text-align: center;
+}
+.is-indicador .bd-indicador__subtexto {
+  max-width: 100%;
+}
+
+/* ============================================================
+   DISTRIBUIÇÕES
+   ============================================================ */
+
+/* ---------- linha dividida ---------- */
+.bd-dividida {
+  container-type: inline-size;
+}
+.bd-dividida__legenda {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 0.75rem;
+  line-height: 1.35;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-dividida__legenda li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.bd-dividida__nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-dividida .is-curto {
+  display: none;
+}
+@container (max-width: 15.5rem) {
+  .bd-dividida .is-longo {
+    display: none;
+  }
+  .bd-dividida .is-curto {
+    display: inline;
+  }
+}
+.bd-dividida__barra {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--bd-superficie-realce);
+  transform-origin: left;
+  animation: bd-enche var(--bd-varre) var(--bd-curva) backwards;
+  animation-delay: var(--bd-inicio);
+}
+.bd-dividida__parte {
+  position: relative;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform var(--bd-hover), opacity var(--bd-hover);
+}
+.bd-dividida__parte:first-child {
+  border-radius: 5px 0 0 5px;
+}
+.bd-dividida__parte:last-child {
+  border-radius: 0 5px 5px 0;
+}
+.bd-dividida__parte:only-child {
+  border-radius: 5px;
+}
+.bd-dividida__parte:hover {
+  transform: scaleY(1.5);
+}
+.bd-dividida__parte:hover ~ .bd-dividida__parte,
+.bd-dividida__parte:has(~ .bd-dividida__parte:hover) {
+  opacity: 0.55;
+}
+/* área de apontar maior que a barra */
+.bd-dividida__parte::before {
+  content: '';
+  position: absolute;
+  inset: -8px 0;
+}
+
+/* ---------- números lado a lado ---------- */
+.bd-numeros {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.bd-numeros__item {
+  flex: 1;
+  min-width: 0;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  transition: opacity var(--bd-hover);
+  animation: bd-sobe var(--bd-dur) var(--bd-curva) backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-numeros__item + .bd-numeros__item {
+  padding-left: 0.75rem;
+  margin-left: 0.75rem;
+  border-left: 1px solid var(--bd-borda);
+}
+.bd-numeros__item.is-apagado {
+  opacity: 0.5;
+}
+.bd-numeros__rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+}
+.bd-numeros__valor {
+  font-size: min(var(--bd-2xl), calc(160cqw / var(--n, 5)));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bd-numeros__pct {
+  font-size: var(--bd-xs);
+  font-weight: 700;
+}
+
+/* ---------- barras horizontais ---------- */
+.bd-barras {
+  --bd-vao: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bd-vao);
+}
+.bd-card.is-barras .bd-barras {
+  flex: 1;
+  min-height: 0;
+  margin-top: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd-borda-forte) transparent;
+}
+.bd-barras__item {
+  position: relative;
+  transition: opacity var(--bd-hover);
+  animation: bd-sobe-pouco var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+/* o vão entre dois itens é metade de cada um: o hover nunca "perde" o item ao descer a lista */
+.bd-barras__item::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--bd-vao) / -2) 0;
+}
+.bd-barras__item:hover ~ .bd-barras__item,
+.bd-barras__item:has(~ .bd-barras__item:hover) {
+  opacity: 0.55;
+}
+.bd-barras__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: var(--bd-xs);
+}
+.bd-barras__nome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+}
+.bd-barras__item:hover .bd-barras__nome {
+  color: var(--bd-texto);
+}
+.bd-barras__numeros {
+  white-space: nowrap;
+}
+.bd-barras__numeros > span {
+  margin-left: 4px;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-barras__trilho {
+  height: 7px;
+  background: var(--bd-superficie-realce);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform var(--bd-hover);
+}
+.bd-barras__item:hover .bd-barras__trilho {
+  transform: scaleY(1.45);
+}
+.bd-barras__cheio {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: left;
+  animation: bd-enche var(--bd-dur) var(--bd-curva) backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+
+/* ---------- gráficos em SVG (rosca, pizza, anéis, meia-lua, medidor) ---------- */
+.bd-grafico {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bd-grafico svg {
+  height: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+.bd-trilho {
+  fill: none;
+  stroke: var(--bd-superficie-realce);
+}
+.bd-arco {
+  fill: none;
+  transition: stroke-width var(--bd-hover), opacity var(--bd-hover);
+  /* varredura de relógio: 100% leva --bd-varre; cada arco começa onde o anterior termina (--ini) e dura em proporção ao tamanho (--pct) */
+  animation: bd-arco calc(var(--pct, 100) * var(--bd-varre) / 100) linear backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--ini, 0) * var(--bd-varre) / 100);
+}
+.bd-arco.is-apagado {
+  opacity: 0.45;
+}
+.bd-arcos {
+  transition: opacity var(--bd-hover);
+}
+.bd-arcos.is-apagado {
+  opacity: 0.45;
+}
+/* a parte em foco cresce numa cópia desenhada por cima das vizinhas, que não se mexem */
+.bd-arco-foco {
+  fill: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--bd-hover), stroke-width var(--bd-hover), transform var(--bd-hover);
+}
+.bd-arco-foco.is-ativo {
+  opacity: 1;
+}
+.is-rosca .bd-arco-foco {
+  stroke-width: 14;
+}
+.is-rosca .bd-arco-foco.is-ativo {
+  stroke-width: 17;
+}
+.is-pizza .bd-arco-foco {
+  stroke: none;
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transform: scale(1);
+}
+.is-pizza .bd-arco-foco.is-ativo {
+  transform: scale(1.08);
+}
+.is-aneis .bd-arco.is-foco {
+  stroke-width: 11.5;
+}
+.bd-grafico.is-arco :is(.bd-arco, .bd-trilho, .bd-arco-foco) {
+  stroke-width: 12;
+}
+.bd-grafico.is-arco .bd-arco-foco.is-ativo {
+  stroke-width: 15;
+}
+.bd-rotulo-fatia {
+  pointer-events: none;
+  fill: var(--bd-texto-inverso);
+  font-size: 7px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  animation: bd-opaco var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--bd-folga));
+}
+/* número no meio da rosca ou embaixo do arco (HTML por cima do SVG, para usar a roleta) */
+.bd-centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--bd-xl);
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.bd-centro small {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-centro.is-baixo {
+  justify-content: flex-end;
+  padding-bottom: 0.1rem;
+  font-size: var(--bd-lg);
+}
+/* o número do meio da rosca acompanha o tamanho do anel e encolhe com a quantidade de dígitos */
+.is-rosca .bd-grafico {
+  container-type: size;
+}
+.is-rosca .bd-centro {
+  font-size: clamp(0.9rem, min(max(var(--bd-xl), 14cqmin), calc(85cqmin / var(--n, 6))), 3.25rem);
+}
+
+.bd-legenda {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0.35rem 2px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--bd-xs);
+  /* a legenda mostra todas as partes: se não couberem no card, ela rola */
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd-borda-forte) transparent;
+}
+.bd-legenda li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--bd-hover);
+  animation: bd-lado var(--bd-dur) ease-out backwards;
+}
+.bd-legenda li:nth-child(1) { animation-delay: var(--bd-inicio); }
+.bd-legenda li:nth-child(2) { animation-delay: calc(var(--bd-inicio) + var(--bd-passo)); }
+.bd-legenda li:nth-child(3) { animation-delay: calc(var(--bd-inicio) + 2 * var(--bd-passo)); }
+.bd-legenda li:nth-child(4) { animation-delay: calc(var(--bd-inicio) + 3 * var(--bd-passo)); }
+.bd-legenda li:nth-child(5) { animation-delay: calc(var(--bd-inicio) + 4 * var(--bd-passo)); }
+.bd-legenda li:nth-child(n + 6) { animation-delay: calc(var(--bd-inicio) + var(--bd-folga)); }
+.bd-legenda .bd-bolinha {
+  transition: transform var(--bd-hover);
+}
+.bd-legenda li.is-apagado {
+  opacity: 0.5;
+}
+.bd-legenda li.is-foco .bd-bolinha {
+  transform: scale(1.35);
+}
+.bd-legenda li.is-foco .bd-legenda__nome {
+  color: var(--bd-texto);
+}
+.bd-legenda__nome {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+}
+.bd-legenda__pct {
+  min-width: 2.6em;
+  text-align: right;
+  color: var(--bd-texto-auxiliar);
+}
+
+/* o gráfico é o destaque: garante mais da metade da altura do card e a legenda, com o que sobra, rola */
+.bd-card:is(.is-rosca, .is-pizza, .is-aneis) .bd-legenda {
+  min-height: 3rem;
+}
+.bd-card:is(.is-rosca, .is-pizza, .is-aneis):not(.is-larga) .bd-grafico {
+  min-height: 55%;
+}
+/* card de 2 colunas ou mais: o gráfico à esquerda e a legenda ao lado, em vez de embaixo */
+.bd-card.is-larga:is(.is-rosca, .is-pizza, .is-aneis, .is-mosaico) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 40%);
+  grid-template-rows: auto minmax(0, 1fr);
+  column-gap: 1.25rem;
+  row-gap: 0.75rem;
+}
+.bd-card.is-larga:is(.is-rosca, .is-pizza, .is-aneis, .is-mosaico) .bd-card__titulo {
+  grid-column: 1 / -1;
+}
+.bd-card.is-larga:is(.is-rosca, .is-pizza, .is-aneis, .is-mosaico) .bd-legenda {
+  align-self: center;
+  min-width: 0;
+  max-height: 100%;
+}
+
+/* meia-lua e medidor: arco de um lado, legenda ou número do outro */
+.bd-lado {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.bd-lado .bd-legenda {
+  flex: 1;
+  min-width: 0;
+  max-height: 100%;
+}
+.bd-lado .bd-grafico.is-arco {
+  flex: 0 0 46%;
+  height: auto;
+  max-height: 100%;
+  align-self: center;
+  aspect-ratio: 100 / 56;
+  container-type: inline-size;
+}
+.bd-lado .bd-grafico.is-arco svg {
+  width: 100%;
+  height: 100%;
+}
+.bd-lado .bd-centro.is-baixo {
+  font-size: clamp(0.65rem, min(max(var(--bd-lg), 12cqw), calc(70cqw / var(--n, 5))), 2.75rem);
+}
+/* meia-lua: o número fica embaixo do arco, com a largura da coluna toda */
+.is-meia-lua .bd-lado .bd-grafico.is-arco {
+  flex: 0 0 52%;
+  height: 100%;
+  aspect-ratio: auto;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
+  gap: 0.35rem;
+}
+.is-meia-lua .bd-lado .bd-grafico.is-arco svg {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+.bd-abaixo {
+  flex: none;
+  max-width: 100%;
+  font-size: clamp(0.8rem, min(var(--bd-2xl), calc(150cqw / var(--n, 5))), 2.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.bd-medidor {
+  flex: 1;
+  min-width: 0;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.bd-medidor strong {
+  font-size: min(var(--bd-2xl), calc(160cqw / var(--n, 5)));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bd-medidor__rotulo {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+}
+.bd-medidor small {
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+  animation: bd-opaco var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--bd-folga));
+}
+
+/* ---------- colunas ---------- */
+.bd-colunas {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 0.25rem;
+}
+.bd-colunas__coluna {
+  flex: 0 1 4.5rem;
+  min-width: 0;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  transition: opacity var(--bd-hover);
+}
+.is-larga .bd-colunas__coluna {
+  flex: 1 1 4.5rem;
+}
+.bd-colunas__coluna.is-apagado {
+  opacity: 0.5;
+}
+.bd-colunas__valor {
+  font-size: min(var(--bd-md), calc(160cqw / var(--n, 5)));
+  font-weight: 800;
+}
+.bd-colunas__trilho {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 6px;
+  background: var(--bd-superficie-realce);
+  overflow: hidden;
+}
+.bd-colunas__barra {
+  width: 100%;
+  border-radius: 6px;
+  transform-origin: bottom;
+  transition: filter var(--bd-hover);
+  animation: bd-cresce var(--bd-dur) var(--bd-curva) backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-colunas__coluna.is-foco .bd-colunas__barra {
+  filter: brightness(1.1);
+}
+.bd-colunas__valor,
+.bd-colunas__rotulo {
+  animation: bd-opaco var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-colunas__rotulo {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+  text-align: center;
+}
+.bd-colunas__nome {
+  max-width: 100%;
+  font-size: 0.6875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-colunas__pct {
+  font-weight: 700;
+  color: var(--bd-texto-auxiliar);
+}
+
+/* ---------- mosaico de 100: sempre quadrado, do tamanho do menor lado do espaço que sobra ---------- */
+.bd-mosaico-area {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+.bd-mosaico {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 2px;
+}
+.bd-mosaico span {
+  position: relative;
+  border-radius: 2px;
+  transition: background-color 0.4s ease, opacity var(--bd-hover), filter var(--bd-hover);
+  animation: bd-quadrado var(--bd-dur) ease-out backwards;
+  /* em diagonal, do canto de cima à esquerda ao de baixo à direita */
+  animation-delay: calc(var(--bd-inicio) + var(--bd-folga) * var(--d, 0) / 18);
+}
+/* cada quadradinho estende a área de apontar por metade do vão: não há buraco entre dois quadrados */
+.bd-mosaico span::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+}
+.bd-mosaico span.is-foco {
+  filter: saturate(1.15) brightness(1.04);
+}
+.bd-mosaico span.is-apagado {
+  opacity: 0.3;
+}
+
+/* ---------- barras 3D ---------- */
+.bd-3d {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.bd-3d canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ============================================================
+   SÉRIES NO TEMPO
+   ============================================================ */
+.bd-legenda-serie {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+}
+.bd-legenda-serie li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--bd-hover);
+}
+.bd-serie {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  margin: 0;
+  position: relative;
+}
+.bd-serie svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bd-serie__grade {
+  stroke: var(--bd-borda);
+  stroke-width: 1;
+}
+.bd-serie__y,
+.bd-serie__x {
+  fill: var(--bd-texto-auxiliar);
+  font-size: 10px;
+  font-weight: 600;
+}
+.bd-serie__y {
+  text-anchor: end;
+  dominant-baseline: central;
+}
+.bd-serie__x {
+  text-anchor: middle;
+}
+.bd-serie__faixa {
+  fill: transparent;
+}
+/* o fundo azul do ponto apontado é um só retângulo que desliza de uma faixa para outra e esmaece ao sair */
+.bd-serie__realce {
+  fill: var(--bd-acao);
+  fill-opacity: 0.07;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.bd-serie__realce.is-visivel {
+  opacity: 1;
+}
+.bd-serie__realce.is-deslizando {
+  transition: opacity 0.15s ease, transform 0.18s var(--bd-curva);
+}
+.bd-serie__barra {
+  transform-box: view-box;
+  transform-origin: 0 var(--base);
+  transition: opacity var(--bd-hover), filter var(--bd-hover);
+  animation: bd-cresce var(--bd-dur) var(--bd-curva) backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-serie__barra.is-foco {
+  filter: brightness(1.12);
+}
+.bd-serie__barra.is-apagado {
+  opacity: 0.55;
+}
+.bd-serie__area {
+  fill-opacity: 0.85;
+  stroke-width: 1;
+  transform-box: view-box;
+  transform-origin: 0 var(--base);
+  transition: fill-opacity var(--bd-hover);
+  animation: bd-cresce var(--bd-varre) var(--bd-curva) backwards;
+  animation-delay: var(--bd-inicio);
+}
+.bd-serie__linha {
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  transition: stroke-width var(--bd-hover);
+  animation: bd-desenha var(--bd-varre) linear backwards;
+  animation-delay: var(--bd-inicio);
+}
+.bd-serie svg.is-apontado .bd-serie__linha {
+  stroke-width: 3;
+}
+.bd-serie__ponto {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bd-ponto 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--j, 0) / var(--n, 1) * (var(--bd-varre) - 0.2s));
+}
+.bd-serie__guia {
+  stroke: var(--bd-texto-auxiliar);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+  pointer-events: none;
+}
+.bd-serie__anel {
+  stroke: var(--bd-superficie);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+/* ============================================================
+   LISTA
+   ============================================================ */
+.bd-lista__topo {
+  margin-bottom: -0.25rem;
+}
+.bd-lista__topo h3 {
+  margin: 0 0 0.2rem;
+  font-size: var(--bd-md);
+  font-weight: 700;
+}
+.bd-lista__topo p {
+  margin: 0;
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+.bd-pessoa {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.bd-pessoa__avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bd-acao-fundo);
+  color: var(--bd-acao);
+  font-size: var(--bd-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.bd-pessoa__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bd-pessoa__nome {
+  font-weight: 600;
+  color: var(--bd-texto);
+}
+.bd-pessoa__extra {
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+.bd-lista__linhas {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd-borda-forte) transparent;
+}
+.bd-lista__linhas li {
+  border-bottom: 1px solid var(--bd-superficie-realce);
+  animation: bd-lado var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-lista__linha {
+  padding: 0.5rem 0.25rem;
+  font-size: var(--bd-xs);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.bd-lista__linha:hover {
+  background-color: var(--bd-superficie-suave);
+}
+.bd-tabela {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd-borda-forte) transparent;
+}
+.bd-tabela table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--bd-xs);
+  text-align: left;
+}
+.bd-tabela thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  background: var(--bd-superficie-suave);
+  border-bottom: 1px solid var(--bd-borda);
+  font-weight: 600;
+  color: var(--bd-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.bd-tabela tbody tr {
+  border-bottom: 1px solid var(--bd-superficie-realce);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  animation: bd-sobe var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + min(var(--i, 0) * var(--bd-passo), var(--bd-folga)));
+}
+.bd-tabela tbody tr:hover {
+  background-color: var(--bd-superficie-suave);
+}
+.bd-tabela td {
+  max-width: 18rem;
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  color: var(--bd-texto-secundario);
+  white-space: nowrap;
+}
+/* a coluna do nome toma o que sobra e nunca passa dela: o texto longo esmaece e rola ao apontar */
+.bd-tabela td.bd-tabela__nome {
+  width: 100%;
+  min-width: 14rem;
+  max-width: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
+   GRÁFICOS POR TEMA
+   Todo gráfico é feito das mesmas peças: TRILHO (o fundo vazio), PARTE (o pedaço colorido), VÃO (entre duas partes vizinhas) e
+   PONTO (a bolinha da legenda). Cada tema define a receita delas uma vez, nos tokens --bd-g-*, e todos os gráficos usam a mesma:
+   arco, barra, coluna, mosaico ou série. Nada aqui mexe em animação ou hover, só na aparência.
+   Vidro: vidro colorido por cima do vidro do card, sem brilho. Cor translúcida, aro branco discreto, reflexo fraco no topo, base mais
+   escura (espessura) e sombra neutra só por fora;
+   trilho quase invisível, cantos de 3px, pontas retas.
+   Argila: massinha. Partes estufadas (luz em cima, sombra embaixo e no chão), trilho cavado, tudo em pílula e pontas redondas.
+   Os SVGs usam filtros com a mesma receita em pixels (useChartFx, em pieces.tsx): --bd-f-vidro, --bd-f-brilho (linhas),
+   --bd-f-relevo e --bd-f-sulco. A cor de cada parte chega em `color`; o fundo é --bd-g-tinta.
+   O vão (2px) e o raio do vidro (3px) também estão lá, em GAP_PX e RADIUS_PX, para a geometria dos arcos e das colunas.
+   ============================================================ */
+.bd,
+.bd-dialogo {
+  --bd-g-vao: 2px;
+  --bd-g-raio: 3px;
+  --bd-g-raio-realce: 3px;
+  --bd-g-espessura: 8px;
+  --bd-g-folga: 0px;
+  --bd-g-ponto: 8px;
+  --bd-g-trilho: rgba(255, 255, 255, 0.05);
+  --bd-g-trilho-sombra: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  /* vidro colorido: a mesma receita do filtro --bd-f-vidro dos SVGs (aro de 1px, reflexo no topo, sombra caída só por fora) */
+  --bd-g-opacidade: 0.62;
+  /* corpo: a cor viva e translúcida (sem luz própria: nada de brilho nem halo) */
+  --bd-g-tinta: color-mix(in srgb, currentColor 62%, transparent);
+  /* reflexo: uma faixa fraca no topo e um toque de quina em diagonal */
+  --bd-g-reflexo:
+    linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0) 60%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 30%);
+  /* a mesma receita do filtro --bd-f-vidro dos SVGs: aro branco discreto, fio no topo, base mais escura, sombra neutra por fora */
+  --bd-g-parte-sombra:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.2),
+    0 3px 6px -1px rgba(0, 0, 0, 0.3);
+  --bd-g-corte: #26262c;
+  --bd-g-apagado: 0.45;
+  --bd-g-cresce: 1.4;
+  --bd-g-foco: brightness(1.12);
+}
+[data-bd-tema='clay'] :is(.bd, .bd-dialogo) {
+  --bd-g-raio: 999px;
+  --bd-g-raio-realce: 12px;
+  --bd-g-espessura: 12px;
+  --bd-g-folga: 2px;
+  --bd-g-ponto: 10px;
+  --bd-g-trilho: #e7e1f6;
+  --bd-g-opacidade: 1;
+  --bd-g-tinta: currentColor;
+  --bd-g-reflexo: none;
+  /* a mesma receita dos filtros relevo e sulco dos SVGs */
+  --bd-g-trilho-sombra: inset 1.5px 1.5px 3px rgba(59, 42, 138, 0.22), inset -1.5px -1.5px 3px rgba(255, 255, 255, 0.85);
+  --bd-g-parte-sombra: inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.6), inset -1.5px -1.5px 2px rgba(42, 26, 110, 0.28), 1.5px 2.5px 4px rgba(90, 67, 184, 0.3);
+  --bd-g-corte: #f4f1fb;
+  --bd-g-foco: brightness(1.06) saturate(1.1);
+}
+
+/* ---------- SVG: trilho, partes, vão ---------- */
+.bd-trilho {
+  stroke: var(--bd-g-trilho);
+}
+.bd-grafico :is(.bd-arco, .bd-arco-foco) {
+  stroke-opacity: var(--bd-g-opacidade);
+  fill-opacity: var(--bd-g-opacidade);
+  filter: var(--bd-f-vidro);
+}
+/* pizza: setores na medida, com os vãos cortados por máscara. A transparência do vidro vai no grupo das fatias (opacas dentro dele),
+   e o efeito (vidro ou relevo) no grupo .bd-arcos */
+.is-pizza .bd-arcos {
+  filter: var(--bd-f-vidro);
+}
+.is-pizza .bd-fatias {
+  opacity: var(--bd-g-opacidade);
+}
+.bd-fatia {
+  transition: opacity var(--bd-hover);
+}
+/* com uma fatia em destaque, ela some do disco: o destaque, maior e translúcido, fica sozinho, sem a borda da fatia original
+   aparecendo através dele (opacidade, e não visibility: a fatia continua sob o mouse e o destaque não pisca) */
+.bd-fatia.is-escondido {
+  opacity: 0;
+}
+/* a entrada: a máscara revela a pizza como um relógio */
+.bd-varredura {
+  animation: bd-arco var(--bd-varre) linear backwards;
+  animation-delay: var(--bd-inicio);
+}
+[data-bd-tema='clay'] .bd-trilho {
+  filter: var(--bd-f-sulco);
+}
+[data-bd-tema='clay'] .bd-grafico :is(.bd-arco, .bd-arco-foco) {
+  filter: var(--bd-f-relevo);
+}
+/* pizza na argila: uma cavidade do tamanho da pizza inteira, com as fatias estufadas dentro dela, encostadas na borda (como nos outros). O relevo vai no
+   grupo, depois da máscara dos cortes: cada fatia ganha a sua borda, inclusive nos vãos, por onde aparece o fundo da cavidade */
+.bd-cavidade {
+  display: none;
+}
+[data-bd-tema='clay'] .bd-cavidade {
+  display: inline;
+  pointer-events: none;
+  fill: var(--bd-g-trilho);
+  filter: var(--bd-f-sulco);
+}
+[data-bd-tema='clay'] .is-pizza .bd-arcos {
+  filter: var(--bd-f-relevo);
+}
+mask .bd-cortes {
+  stroke: #000;
+}
+/* pontas redondas só nas pontas do gráfico: num arco de uma parte só (medidor, anéis) as duas pontas da parte são as do gráfico;
+   num arco dividido as divisas de dentro ficam retas, a rosca (fechada) não tem ponta e a meia-lua ganha as duas pontas à parte (.bd-ponta) */
+[data-bd-tema='clay'] .bd-card:is(.is-medidor, .is-aneis) .bd-grafico :is(.bd-arco, .bd-arco-foco, .bd-trilho),
+[data-bd-tema='clay'] .is-meia-lua .bd-trilho {
+  stroke-linecap: round;
+}
+/* meia-lua: as partes e as pontas levam o brilho ou o relevo juntas, no grupo, para não ter emenda entre a ponta e a sua parte */
+.is-meia-lua .bd-arcos {
+  filter: var(--bd-f-vidro);
+}
+[data-bd-tema='clay'] .is-meia-lua .bd-arcos {
+  filter: var(--bd-f-relevo);
+}
+.is-meia-lua .bd-grafico .bd-arcos .bd-arco {
+  filter: none;
+}
+.is-meia-lua .bd-focos {
+  pointer-events: none;
+  filter: var(--bd-f-vidro);
+}
+[data-bd-tema='clay'] .is-meia-lua .bd-focos {
+  filter: var(--bd-f-relevo);
+}
+.is-meia-lua .bd-grafico .bd-focos :is(.bd-arco-foco, .bd-ponta-foco) {
+  filter: none;
+}
+.bd-ponta {
+  animation: bd-opaco 0.2s ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--ini, 0) * var(--bd-varre) / 100);
+}
+.bd-ponta-foco {
+  pointer-events: none;
+  opacity: 0;
+  filter: var(--bd-f-relevo);
+  transition: opacity var(--bd-hover);
+}
+.bd-ponta-foco.is-ativo {
+  opacity: 1;
+}
+.bd-cortes {
+  pointer-events: none;
+  stroke: var(--bd-g-corte);
+}
+.bd-cortes line {
+  /* cada corte aparece quando a varredura de entrada passa por ele */
+  animation: bd-opaco 0.2s ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--ini, 0) * var(--bd-varre) / 100);
+}
+/* o miolo da rosca e dos anéis: vidro quase sumido ou massinha estufada */
+.bd-miolo {
+  pointer-events: none;
+  fill: rgba(255, 255, 255, 0.035);
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 0.6;
+}
+[data-bd-tema='clay'] .bd-miolo {
+  fill: #f7f5fd;
+  stroke: none;
+  filter: var(--bd-f-relevo);
+}
+
+/* ---------- HTML: trilho, partes, vão, ponto ---------- */
+.bd-bolinha,
+.bd-barras__cheio,
+.bd-colunas__barra,
+.bd-dividida__parte,
+.bd-mosaico span {
+  background-color: var(--bd-g-tinta);
+  background-image: var(--bd-g-reflexo);
+}
+.bd-bolinha {
+  width: var(--bd-g-ponto);
+  height: var(--bd-g-ponto);
+  box-shadow: var(--bd-g-parte-sombra);
+}
+:is(.bd-barras__trilho, .bd-dividida__barra, .bd-colunas__trilho) {
+  box-sizing: border-box;
+  padding: var(--bd-g-folga);
+  background: var(--bd-g-trilho);
+  box-shadow: var(--bd-g-trilho-sombra);
+  border-radius: var(--bd-g-raio);
+  overflow: visible;
+}
+:is(.bd-barras__trilho, .bd-dividida__barra) {
+  height: var(--bd-g-espessura);
+}
+.bd-dividida__barra {
+  gap: var(--bd-g-vao);
+}
+:is(.bd-barras__cheio, .bd-colunas__barra, .bd-dividida__parte:nth-child(n)) {
+  border-radius: var(--bd-g-raio);
+  box-shadow: var(--bd-g-parte-sombra);
+}
+/* a linha dividida é uma barra só: arredonda as duas pontas dela e as divisas de dentro ficam retas */
+.bd-dividida__parte:nth-child(n) {
+  border-radius: 0;
+}
+.bd-dividida__parte:first-child {
+  border-top-left-radius: var(--bd-g-raio);
+  border-bottom-left-radius: var(--bd-g-raio);
+}
+.bd-dividida__parte:last-child {
+  border-top-right-radius: var(--bd-g-raio);
+  border-bottom-right-radius: var(--bd-g-raio);
+}
+/* na argila a parte sempre se ajusta à cavidade: o trilho recorta pela borda de dentro (a curva da cavidade, já descontada a folga) e
+   a parte não tem canto do lado de onde nasce. Assim a base segue a curva da cavidade mesmo numa parte curta, sem degrau (no vidro o
+   canto é pequeno e a sombra precisa vazar) */
+[data-bd-tema='clay'] :is(.bd-barras__trilho, .bd-colunas__trilho) {
+  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: content-box;
+}
+[data-bd-tema='clay'] .bd-colunas__barra {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+[data-bd-tema='clay'] .bd-barras__cheio {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.bd-mosaico {
+  gap: var(--bd-g-vao);
+}
+.bd-mosaico span {
+  border-radius: var(--bd-g-raio);
+  box-shadow: var(--bd-g-parte-sombra);
+}
+.bd-mosaico span.is-vazio {
+  box-shadow: var(--bd-g-trilho-sombra);
+}
+[data-bd-tema='clay'] .bd-numeros__item + .bd-numeros__item {
+  border-left-color: rgba(124, 104, 196, 0.16);
+}
+
+/* ---------- séries ---------- */
+.bd-serie__barras,
+.bd-serie__area {
+  filter: var(--bd-f-vidro);
+}
+.bd-serie__traco {
+  /* sem brilho: só a sombra neutra das partes */
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}
+.bd-serie__barra {
+  fill-opacity: var(--bd-g-opacidade);
+}
+[data-bd-tema='clay'] :is(.bd-serie__barras, .bd-serie__traco, .bd-serie__area) {
+  filter: var(--bd-f-relevo);
+}
+.bd-serie__realce {
+  rx: var(--bd-g-raio-realce);
+}
+/* área empilhada: a linha de cima de cada camada tem a largura do vão (neon na cor da camada; na argila, a divisa clara) */
+.bd-serie__area {
+  fill-opacity: 0.22;
+  stroke-width: var(--bd-g-vao);
+}
+.bd-serie__area:hover {
+  fill-opacity: 0.34;
+}
+.bd-serie__ponto {
+  stroke: var(--bd-superficie);
+  stroke-width: 1.4;
+}
+[data-bd-tema='clay'] .bd-serie__grade {
+  stroke: rgba(124, 104, 196, 0.2);
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+[data-bd-tema='clay'] .bd-serie__linha {
+  stroke-width: 3.6;
+}
+[data-bd-tema='clay'] .bd-serie svg.is-apontado .bd-serie__linha {
+  stroke-width: 4.6;
+}
+[data-bd-tema='clay'] .bd-serie__ponto {
+  fill: #fbfaff;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+/* áreas na argila: cada camada é uma placa de massinha em degradê (fill de --bd-camada, por camada), com um rolinho na cor cheia
+   em cima, da espessura da linha do gráfico de linhas; as camadas se separam pela divisa clara */
+[data-bd-tema='clay'] .bd-serie__area {
+  fill: var(--bd-camada);
+  fill-opacity: 1;
+  stroke: var(--bd-g-corte);
+}
+[data-bd-tema='clay'] .bd-serie__area:hover {
+  fill-opacity: 1;
+  filter: var(--bd-f-relevo) var(--bd-g-foco);
+}
+.bd-serie__crista,
+.bd-serie__ponto.is-crista {
+  display: none;
+}
+[data-bd-tema='clay'] .bd-serie__ponto.is-crista {
+  display: inline;
+  pointer-events: none;
+}
+[data-bd-tema='clay'] .bd-serie__crista {
+  display: inline;
+  fill: none;
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  filter: var(--bd-f-relevo);
+  /* cresce junto com a sua camada */
+  transform-box: view-box;
+  transform-origin: 0 var(--base);
+  animation: bd-cresce var(--bd-varre) var(--bd-curva) backwards;
+  animation-delay: var(--bd-inicio);
+}
+[data-bd-tema='clay'] .bd-serie__anel {
+  stroke: #fbfaff;
+  stroke-width: 2.5;
+}
+
+/* ---------- estados: o mesmo esmaecido, o mesmo realce e o mesmo crescer em todos ---------- */
+:is(.bd-arco, .bd-arcos, .bd-legenda li, .bd-legenda-serie li, .bd-numeros__item, .bd-colunas__coluna, .bd-mosaico span, .bd-serie__barra).is-apagado,
+.bd-barras__item:hover ~ .bd-barras__item,
+.bd-barras__item:has(~ .bd-barras__item:hover),
+.bd-dividida__parte:hover ~ .bd-dividida__parte,
+.bd-dividida__parte:has(~ .bd-dividida__parte:hover) {
+  opacity: var(--bd-g-apagado);
+}
+.bd-colunas__coluna.is-foco .bd-colunas__barra,
+.bd-serie__barra.is-foco,
+.bd-mosaico span.is-foco {
+  filter: var(--bd-g-foco);
+}
+.bd-barras__item:hover .bd-barras__trilho,
+.bd-dividida__parte:hover {
+  transform: scaleY(var(--bd-g-cresce));
+}
+
+/* em edição os filtros saem: o painel inteiro se mexe e eles custariam caro a cada quadro (no Firefox, sobretudo) */
+.bd[data-editando] .bd-item > .bd-card svg * {
+  filter: none !important;
+}
+
+/* ============================================================
+   ANIMAÇÕES DE ENTRADA DO CONTEÚDO
+   ============================================================ */
+@keyframes bd-sobe {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes bd-sobe-pouco {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes bd-lado {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+@keyframes bd-opaco {
+  from {
+    opacity: 0;
+  }
+}
+/* o arco nasce invisível: com ponta redonda, um traço de comprimento zero já seria uma bolinha esperando a vez */
+@keyframes bd-arco {
+  from {
+    stroke-dasharray: 0 100;
+    stroke-opacity: 0;
+  }
+  1% {
+    stroke-opacity: 1;
+  }
+}
+@keyframes bd-cresce {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes bd-enche {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes bd-quadrado {
+  from {
+    transform: scale(0.3);
+    opacity: 0.35;
+  }
+  60% {
+    transform: scale(1.12);
+  }
+}
+@keyframes bd-desenha {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes bd-ponto {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+.bd-apoio,
+.bd-indicador__subtexto {
+  animation: bd-opaco var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--bd-folga));
+}
+.bd-indicador__variacao {
+  animation: bd-sobe var(--bd-dur) ease-out backwards;
+  animation-delay: calc(var(--bd-inicio) + var(--bd-folga));
+}
+
+/* ============================================================
+   CATÁLOGO (adicionar elemento / trocar a forma)
+   ============================================================ */
+.bd-dialogo {
+  width: min(1040px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+  padding: 0;
+  border-radius: calc(var(--bd-raio) + 2px);
+  background: var(--bd-dialogo-fundo);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra-flutuante);
+  overflow: hidden;
+}
+.bd-dialogo::backdrop {
+  background: var(--bd-veu, rgba(0, 0, 0, 0.45));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.bd-dialogo__painel {
+  display: flex;
+  flex-direction: column;
+  max-height: min(720px, calc(100vh - 32px));
+}
+.bd-dialogo__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--bd-borda);
+}
+.bd-dialogo__topo h2 {
+  margin: 0 0 0.15rem;
+  font-size: var(--bd-lg);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.bd-dialogo__topo p {
+  margin: 0;
+  font-size: var(--bd-xs);
+  color: var(--bd-texto-auxiliar);
+}
+.bd-dialogo__fechar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: var(--bd-vidro-forte);
+  box-shadow: var(--bd-sombra-leve);
+  color: var(--bd-texto-secundario);
+  border: 1px solid var(--bd-vidro-borda);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bd-dialogo__fechar:hover {
+  background: var(--bd-acao);
+  color: var(--bd-texto-inverso);
+  border-color: var(--bd-acao);
+}
+.bd-dialogo__colunas {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 270px) minmax(0, 1fr);
+}
+.is-so-formas .bd-dialogo__colunas {
+  grid-template-columns: minmax(0, 1fr);
+}
+.bd-dialogo__fontes {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem;
+  overflow-y: auto;
+  background: var(--bd-vidro-leve);
+  border-right: 1px solid var(--bd-vidro-borda);
+  scrollbar-width: thin;
+}
+.bd-dialogo__fontes button {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  text-align: left;
+  color: var(--bd-texto);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.bd-dialogo__fontes button:hover {
+  background: var(--bd-vidro);
+}
+.bd-dialogo__fontes button.is-escolhida {
+  background: var(--bd-acao-fundo);
+  box-shadow: var(--bd-sombra-leve);
+  border-color: var(--bd-acao-borda);
+}
+.bd-dialogo__fontes button.is-escolhida b {
+  color: var(--bd-acao-forte);
+}
+.bd-dialogo__fontes b {
+  font-size: var(--bd-xs);
+  font-weight: 700;
+}
+.bd-dialogo__fontes span {
+  font-size: 0.8125rem;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-dialogo__formas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  align-content: start;
+  gap: 1rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.bd-opcao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.75rem;
+  font: inherit;
+  text-align: left;
+  color: var(--bd-texto);
+  background: var(--bd-vidro-leve);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra-leve);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.bd-opcao:hover,
+.bd-opcao[aria-current] {
+  background: var(--bd-vidro-forte);
+  border-color: var(--bd-acao);
+}
+.bd-opcao__previa {
+  display: block;
+  pointer-events: none;
+}
+.bd-opcao__nome {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: var(--bd-sm);
+  font-weight: 700;
+}
+.bd-opcao__nome small {
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-auxiliar);
+}
+.bd-opcao__descricao {
+  font-size: var(--bd-xs);
+  line-height: 1.35;
+  color: var(--bd-texto-auxiliar);
+}
+
+@media (max-width: 640px) {
+  .bd-cabecalho__titulo {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .bd-dialogo__colunas {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 34%) minmax(0, 1fr);
+  }
+  .bd-dialogo__fontes {
+    border-right: 0;
+    border-bottom: 1px solid var(--bd-borda);
+  }
+}
+
+/* navegadores sem backdrop-filter: vidro mais opaco para não perder contraste */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bd,
+  .bd-dialogo,
+  .bd-dica {
+    --bd-vidro: rgba(44, 44, 52, 0.94);
+    --bd-vidro-forte: rgba(60, 60, 70, 0.96);
+    --bd-vidro-leve: rgba(40, 40, 48, 0.9);
+  }
+}
+
+/* reduzir movimento: nada anima nem transiciona; tudo vai direto ao estado final */
+@media (prefers-reduced-motion: reduce) {
+  .bd *,
+  .bd-dialogo * {
+    animation-duration: 0.001s !important;
+    animation-delay: 0s !important;
+    transition: none !important;
+  }
+  .bd-loader {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .bd-acoes,
+  .bd-cabecalho__filtros,
+  .bd-edicao {
+    display: none;
+  }
+  .bd-item {
+    break-inside: avoid;
+  }
+  .bd-rolante {
+    white-space: normal;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* ============================================================
+   FUNDO DO TEMA (opcional, prop `backdrop` do <Boardular>)
+   O vidro precisa de cor por trás para desfocar: uma camada fixa atrás da página, com luzes de cor (vidro) ou manchas pastel (argila).
+   Fica numa camada própria, e não em background-attachment: fixed, que o Firefox repinta inteiro a cada quadro.
+   ============================================================ */
+.bd-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #0c0d12;
+  background-image:
+    radial-gradient(38rem 30rem at 6% 4%, rgba(99, 102, 241, 0.55), transparent 70%),
+    radial-gradient(34rem 28rem at 96% 18%, rgba(14, 165, 233, 0.42), transparent 70%),
+    radial-gradient(40rem 32rem at 70% 96%, rgba(168, 85, 247, 0.4), transparent 70%),
+    radial-gradient(30rem 26rem at 12% 78%, rgba(20, 184, 166, 0.35), transparent 70%),
+    radial-gradient(26rem 20rem at 48% 46%, rgba(236, 72, 153, 0.18), transparent 70%),
+    linear-gradient(160deg, #11121a 0%, #0b0c11 60%, #10111a 100%);
+  will-change: transform;
+}
+[data-bd-tema='clay'] .bd-fundo {
+  background-color: #e3dcf3;
+  background-image:
+    radial-gradient(40rem 32rem at 4% 0%, rgba(180, 160, 252, 0.7), transparent 70%),
+    radial-gradient(36rem 30rem at 100% 10%, rgba(147, 200, 255, 0.65), transparent 70%),
+    radial-gradient(42rem 34rem at 80% 100%, rgba(249, 180, 220, 0.65), transparent 70%),
+    radial-gradient(32rem 28rem at 8% 85%, rgba(140, 230, 196, 0.55), transparent 70%),
+    linear-gradient(160deg, #e6e0f6 0%, #e1daf1 55%, #e6dff4 100%);
+}
+@media print {
+  .bd-fundo {
+    display: none;
+  }
+}
+
+/* ============================================================
+   TEMAS PADRÃO E ESCURO (claro e grafite). O padrão é o tema de fábrica: vale também com o <html> sem data-bd-tema. Chapados: superfícies opacas, borda fina de 1px, raio de 12px,
+   nada de sombra em repouso, de desfoque nem de relevo; as cores das partes vão cheias. A paleta é a escala slate (texto, borda,
+   superfície) com o azul #2563eb nas ações; no escuro, as cores dos gráficos perdem saturação (0,55) e 10% de brilho,
+   para não ofuscarem sobre o grafite (os filtros dos SVGs fazem isso pelas mesmas variáveis --bd-f-*, em useChartFx).
+   ============================================================ */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) :is(.bd, .bd-dialogo, .bd-dica) {
+  --bd-desfoque: none;
+  --bd-desfoque-leve: none;
+  --bd-vidro-brilho: none;
+  --bd-aro: none;
+  --bd-sombra: none;
+  --bd-sombra-leve: none;
+  --bd-fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bd-raio: 12px;
+  --bd-concluir-sombra: none;
+  --bd-edicao-card-sombra: none;
+  --bd-dialogo-fundo: var(--bd-superficie);
+  --bd-edicao-card-fundo: var(--bd-superficie);
+  --bd-edicao-cabecalho-fundo: var(--bd-superficie);
+  --bd-edicao-botao-fundo: var(--bd-superficie-realce);
+  --bd-vidro: var(--bd-superficie);
+  --bd-vidro-forte: var(--bd-superficie-realce);
+  --bd-vidro-leve: var(--bd-superficie-suave);
+  --bd-vidro-borda: var(--bd-borda);
+  --bd-edicao-card-borda: var(--bd-borda-forte);
+  --bd-botao-borda-hover: var(--bd-borda-forte);
+  --bd-faixa-fundo: var(--bd-acao-fundo);
+  --bd-faixa-borda: var(--bd-acao-borda);
+  --bd-adicionar-hover: var(--bd-acao-fundo);
+  --bd-alvo-sombra: inset 0 0 0 2px var(--bd-acao-borda);
+}
+:is([data-bd-tema='default'], :root:not([data-bd-tema])) :is(.bd, .bd-dialogo, .bd-dica) {
+  --bd-superficie: #ffffff;
+  --bd-superficie-suave: #f8fafc;
+  --bd-superficie-realce: #f1f5f9;
+  --bd-borda: #e2e8f0;
+  --bd-borda-forte: #cbd5e1;
+  --bd-texto: #0f172a;
+  --bd-texto-secundario: #334155;
+  --bd-texto-suave: #475569;
+  --bd-texto-auxiliar: #64748b;
+  --bd-texto-inverso: #ffffff;
+  --bd-neutro-claro: #94a3b8;
+  --bd-acao: #2563eb;
+  --bd-acao-forte: #1d4ed8;
+  --bd-acao-clara: #93c5fd;
+  --bd-acao-borda: #bfdbfe;
+  --bd-acao-fundo: #eff6ff;
+  --bd-marinho: #1e3a8a;
+  --bd-foco: rgba(37, 99, 235, 0.18);
+  --bd-sombra-flutuante: 0 24px 48px -12px rgba(15, 23, 42, 0.25);
+  --bd-dica-sombra: 0 8px 16px -4px rgba(15, 23, 42, 0.12);
+  --bd-veu: rgba(15, 23, 42, 0.35);
+  color-scheme: light;
+}
+[data-bd-tema='dark'] :is(.bd, .bd-dialogo, .bd-dica) {
+  /* grafite neutro: página < cartão < realce, cada degrau um pouco mais claro; texto claro sem ser branco puro, azul suave nas ações */
+  --bd-superficie: #151a22;
+  --bd-superficie-suave: #0f131a;
+  --bd-superficie-realce: #1e2530;
+  --bd-borda: #2f3742;
+  --bd-borda-forte: #3d444d;
+  --bd-texto: #f0f4f8;
+  --bd-texto-secundario: #d3d9e0;
+  --bd-texto-suave: #b6bdc7;
+  --bd-texto-auxiliar: #98a0ac;
+  --bd-texto-inverso: #ffffff;
+  --bd-neutro-claro: #6b7380;
+  --bd-acao: #6ea1f7;
+  --bd-acao-forte: #5b93f0;
+  --bd-acao-clara: #9dbcf5;
+  --bd-acao-borda: #2c3e63;
+  --bd-acao-fundo: #172033;
+  --bd-marinho: #c9d7f2;
+  --bd-foco: rgba(110, 161, 247, 0.25);
+  --bd-sombra-flutuante: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  --bd-dica-sombra: 0 8px 16px -4px rgba(0, 0, 0, 0.5);
+  --bd-veu: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+/* partes chapadas, na cor cheia; trilho no tom de realce da superfície, sem sombra; os cortes na cor do card */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) :is(.bd, .bd-dialogo) {
+  --bd-g-vao: 0px;
+  --bd-g-raio: 4px;
+  --bd-g-raio-realce: 0px;
+  --bd-g-espessura: 7px;
+  --bd-g-folga: 0px;
+  --bd-g-ponto: 8px;
+  --bd-g-trilho: var(--bd-superficie-realce);
+  --bd-g-trilho-sombra: none;
+  --bd-g-opacidade: 1;
+  --bd-g-tinta: currentColor;
+  --bd-g-reflexo: none;
+  --bd-g-parte-sombra: none;
+  --bd-g-corte: var(--bd-superficie);
+  --bd-g-foco: brightness(1.1);
+  --bd-g-cresce: 1.5;
+}
+[data-bd-tema='dark'] :is(.bd, .bd-dialogo) {
+  --bd-g-filtro: saturate(0.55) brightness(0.9);
+  --bd-g-foco: saturate(0.7) brightness(1.05);
+}
+/* botões e campos com canto de 8px, no lugar da pílula */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) :is(.bd-botao, .bd-filtro select) {
+  border-radius: 8px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-botao:hover {
+  background: var(--bd-superficie-realce);
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dialogo {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* o miolo da rosca e dos anéis some; o traço das linhas fica sem sombra (só o filtro do tema) */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-miolo {
+  fill: none;
+  stroke: none;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-serie__traco {
+  filter: var(--bd-f-vidro);
+}
+/* cada peça com a sua medida, partes encostadas (sem vão): linha dividida de 10px com pontas de 5px, barras de 7px com
+   canto de 4px, colunas com canto de 6px, mosaico com 2px de vão e de canto; nas séries, a área quase opaca com o contorno na cor do card */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dividida__barra {
+  height: 10px;
+  padding: 0;
+  gap: 0;
+  border-radius: 5px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dividida__parte:nth-child(n) {
+  border-radius: 0;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dividida__parte:first-child {
+  border-radius: 5px 0 0 5px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dividida__parte:last-child {
+  border-radius: 0 5px 5px 0;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dividida__parte:only-child {
+  border-radius: 5px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-barras__trilho {
+  height: 7px;
+  padding: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-barras__cheio {
+  border-radius: 4px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-colunas__trilho {
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-colunas__barra {
+  border-radius: 6px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-mosaico {
+  gap: 2px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-mosaico span {
+  border-radius: 2px;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-serie__area {
+  fill-opacity: 0.85;
+  stroke: var(--bd-superficie);
+  stroke-width: 1;
+}
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-serie__area:hover {
+  fill-opacity: 1;
+}
+/* no escuro, as partes em HTML levam o mesmo filtro das partes em SVG */
+[data-bd-tema='dark'] :is(.bd-bolinha, .bd-barras__cheio, .bd-colunas__barra, .bd-dividida__parte, .bd-mosaico span:not(.is-vazio)) {
+  filter: var(--bd-g-filtro);
+}
+/* o fundo da página: cinza-azulado bem claro (ou grafite) com o pontilhado de 6px */
+:is([data-bd-tema='default'], :root:not([data-bd-tema])) .bd-fundo {
+  background-color: #f8f9fc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='1' height='1' fill='%230f172a' fill-opacity='.10'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%230f172a' fill-opacity='.065'/%3E%3C/svg%3E");
+}
+[data-bd-tema='dark'] .bd-fundo {
+  background-color: #0f131a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='1' height='1' fill='%23f0f4f8' fill-opacity='.10'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23f0f4f8' fill-opacity='.06'/%3E%3C/svg%3E");
+}
+
+
+} /* @layer boardular */

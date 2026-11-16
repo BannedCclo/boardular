@@ -1,0 +1,69 @@
+{
+  "name": "boardular",
+  "version": "0.1.0",
+  "description": "A modular React dashboard built from JSON: declare each item's title, type and data, and Boardular picks how to display it. Draggable, resizable cards; default, dark, glass and clay themes.",
+  "license": "MIT",
+  "author": "BannedCclo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BannedCclo/boardular.git"
+  },
+  "homepage": "https://github.com/BannedCclo/boardular#readme",
+  "bugs": {
+    "url": "https://github.com/BannedCclo/boardular/issues"
+  },
+  "type": "module",
+  "keywords": [
+    "react",
+    "dashboard",
+    "charts",
+    "data-visualization",
+    "json",
+    "widgets",
+    "glassmorphism",
+    "claymorphism"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/boardular.cjs",
+  "module": "./dist/boardular.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/boardular.js",
+      "require": "./dist/boardular.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build -c vite.lib.config.ts && tsc -p tsconfig.lib.json",
+    "build:demo": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "animejs": "^4.5.0",
+    "gsap": "^3.15.1",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

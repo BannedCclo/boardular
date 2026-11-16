@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-demo
+*.tgz
+*.log
+.env*
+.claude/
+.vitest/
