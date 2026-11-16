@@ -98,6 +98,8 @@ export interface Widget extends Size {
   id: string;
   source: string;
   view: string;
+  /** Cores escolhidas pelo usuário para as partes (ou linhas) deste card, pelo rótulo. */
+  colors?: Record<string, string>;
 }
 
 /** O painel de fábrica: os cards e onde ficam na grade mais larga. */

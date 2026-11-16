@@ -1,6 +1,6 @@
 # Boardular
 
-Biblioteca React de painel (dashboard). Você declara os itens em JSON — título, tipo de informação e dados — e a biblioteca escolhe a forma de exibir cada um, monta os cards e os arruma na grade. Quem usa o painel pode arrastar, redimensionar, trocar a forma, tirar e devolver cards; a personalização fica guardada no navegador.
+Biblioteca React de painel (dashboard). Você declara os itens em JSON — título, tipo de informação e dados — e a biblioteca escolhe a forma de exibir cada um, monta os cards e os arruma na grade. Quem usa o painel pode arrastar, redimensionar, trocar a forma e as cores, tirar e devolver cards; a personalização fica guardada no navegador.
 
 Quatro temas: **default** (claro, chapado; o de fábrica), **dark** (grafite, chapado), **glass** (escuro, translúcido) e **clay** (claro, estufado). Os estilos da biblioteca ficam numa camada CSS própria, então o seu CSS sempre vence.
 
@@ -162,6 +162,12 @@ Forma nova: um componente que recebe `{ data, title, size }` e usa `<Frame>`, ma
 - **Three.js**: a forma "Barras 3D", carregada sob demanda.
 
 Com `prefers-reduced-motion` nada anima.
+
+## Cores (modo de edição)
+
+O lápis de um card abre a escolha da forma de exibir. Para distribuições e séries, o topo dessa tela tem o menu **Cores**: ele abre no topo da tela com um seletor de cor para cada parte (ou cada linha), ao lado de uma prévia do gráfico que muda junto. As cores escolhidas ficam guardadas com o layout do card no navegador; "Restaurar" traz as originais de volta. Uma `color` definida nos dados do item é a cor de partida.
+
+O modo de edição nunca muda a aparência dos cards: o card em edição é desenhado exatamente como o tema o desenha.
 
 ## Teclado (modo de edição)
 

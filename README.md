@@ -1,6 +1,6 @@
 # Boardular
 
-A modular dashboard for React. Declare your items as JSON (a title, the kind of information and the data) and Boardular picks how to display each one, builds the cards and lays them out on a grid. People using the dashboard can drag, resize, switch the display, remove and bring back cards; their layout is saved in the browser.
+A modular dashboard for React. Declare your items as JSON (a title, the kind of information and the data) and Boardular picks how to display each one, builds the cards and lays them out on a grid. People using the dashboard can drag, resize, switch the display, recolor, remove and bring back cards; their layout is saved in the browser.
 
 Four themes: **default** (flat light), **dark** (flat dark), **glass** (dark glass) and **clay** (light clay). The library's styles live in their own CSS cascade layer, so your CSS always wins.
 
@@ -175,6 +175,12 @@ The source code (comments, CSS class names, theme and display ids) is written in
 - **Three.js**: the "3D bars" display, loaded on demand.
 
 With `prefers-reduced-motion`, nothing animates.
+
+## Colors (edit mode)
+
+The pencil on a card opens the display picker. For breakdowns and series, its header has a **Cores** (colors) menu: it opens at the top of the screen with one color picker per part (or per line) next to a live preview of the chart. The chosen colors are saved with the card's layout in the browser; "Restaurar" brings back the original ones. A `color` set in the item's data is the starting color.
+
+Edit mode never changes how cards look: a card being edited is drawn exactly as the theme draws it.
 
 ## Keyboard (edit mode)
 

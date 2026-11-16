@@ -1,5 +1,6 @@
 import { Suspense, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Size } from './layout';
+import { applyColors, type Colors } from './colors';
 import { CardLook, Loader } from './pieces';
 import type { Source, ViewDef } from './types';
 
@@ -38,6 +39,8 @@ interface Props {
   /** Células que o card ocupa agora. */
   size: Size;
   refresh?: unknown;
+  /** Cores escolhidas pelo usuário para as partes deste card. */
+  colors?: Colors;
 }
 
 function Waiting({ title, children }: { title: string; children: React.ReactNode }) {
@@ -51,8 +54,9 @@ function Waiting({ title, children }: { title: string; children: React.ReactNode
 }
 
 /** O miolo de um card: carrega os dados da fonte e os entrega à forma de exibição, com a classe e o estilo que a fonte der ao card. */
-export const WidgetBody = memo(function WidgetBody({ source, view, size, refresh }: Props) {
-  const { data, failed, retry } = useSourceData(source, refresh);
+export const WidgetBody = memo(function WidgetBody({ source, view, size, refresh, colors }: Props) {
+  const { data: loaded, failed, retry } = useSourceData(source, refresh);
+  const data = useMemo(() => applyColors(source.kind, loaded, colors), [source.kind, loaded, colors]);
   const look = useMemo(() => ({ className: source.className, style: source.style }), [source.className, source.style]);
   const waiting = (
     <Waiting title={source.title}>
@@ -80,4 +84,4 @@ export const WidgetBody = memo(function WidgetBody({ source, view, size, refresh
   );
 },
 // o tamanho chega como objeto novo a cada render do painel: compara pelos números para um arrasto não redesenhar todos os gráficos
-(a, b) => a.source === b.source && a.view === b.view && a.refresh === b.refresh && a.size.w === b.size.w && a.size.h === b.size.h);
+(a, b) => a.source === b.source && a.view === b.view && a.refresh === b.refresh && a.colors === b.colors && a.size.w === b.size.w && a.size.h === b.size.h);

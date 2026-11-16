@@ -102,7 +102,7 @@ function EditBar({ open, children }: { open: boolean; children: ReactNode }) {
 
 export function Dashboard({ id, title, subtitle, sources, preset, filters, refresh, className, style }: Props) {
   useStyles();
-  const { state, editing, setEditing, add, remove, commit, swap, reset, customized } = useDashboard(id, preset, PRESET_COLS);
+  const { state, editing, setEditing, add, remove, commit, swap, recolor, reset, customized } = useDashboard(id, preset, PRESET_COLS);
   const grid = useRef<HTMLDivElement>(null);
   const header = useRef<HTMLElement>(null);
   const cards = useRef(new Map<string, HTMLElement>());
@@ -588,12 +588,12 @@ export function Dashboard({ id, title, subtitle, sources, preset, filters, refre
                 aria-label={editing ? `${source.title}. Setas movem, Shift e setas redimensionam, Delete remove.` : undefined}
                 onKeyDown={e => onKey(e, item)}
               >
-                <WidgetBody source={source} view={view} size={{ w: box.w, h: box.h }} refresh={refresh} />
+                <WidgetBody source={source} view={view} size={{ w: box.w, h: box.h }} refresh={refresh} colors={widget.colors} />
                 {editing && (
                   <>
                     <div className="bd-contorno" aria-hidden="true" />
                     <div className="bd-controles">
-                      <button type="button" onClick={() => setDialog({ editing: item })} aria-label={`Editar ${source.title}`} title="Trocar a forma de exibir">
+                      <button type="button" onClick={() => setDialog({ editing: item })} aria-label={`Editar ${source.title}`} title="Trocar a forma de exibir e as cores">
                         <IconPencil size={14} />
                       </button>
                       <button type="button" onClick={() => dismiss(widget.id)} aria-label={`Remover ${source.title} do painel`} title="Remover do painel">
@@ -622,11 +622,13 @@ export function Dashboard({ id, title, subtitle, sources, preset, filters, refre
         sources={sources}
         fixed={dialog?.editing?.source ?? null}
         current={dialog?.editing?.view.id}
+        colors={dialog?.editing?.widget.colors}
         refresh={refresh}
         onClose={() => setDialog(null)}
-        onPick={(source, view) => {
+        onColors={colors => dialog?.editing && recolor(dialog.editing.widget.id, colors)}
+        onPick={(source, view, colors) => {
           if (dialog?.editing) swap(dialog.editing.widget.id, view.id, view.size);
-          else add(source.id, view.id, view.size);
+          else add(source.id, view.id, view.size, colors);
           setDialog(null);
         }}
       />

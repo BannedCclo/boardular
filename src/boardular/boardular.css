@@ -52,12 +52,6 @@
   --bd-dica-sombra: var(--bd-aro), 0 12px 30px -8px rgba(0, 0, 0, 0.6);
   --bd-dialogo-fundo: var(--bd-vidro-brilho), rgba(38, 38, 44, 0.72);
   --bd-veu: rgba(0, 0, 0, 0.45);
-  /* modo de edição: versões baratas de desenhar (os cards tremem e deslizam o tempo todo) */
-  --bd-edicao-card-fundo: rgba(48, 48, 56, 0.92);
-  --bd-edicao-card-borda: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.07) rgba(255, 255, 255, 0.07) rgba(255, 255, 255, 0.2);
-  --bd-edicao-card-sombra: none;
-  --bd-edicao-botao-fundo: rgba(72, 72, 82, 0.95);
-  --bd-edicao-cabecalho-fundo: var(--bd-vidro-brilho), rgba(38, 38, 46, 0.9);
 
   color-scheme: dark;
 
@@ -133,12 +127,6 @@
   --bd-dica-sombra: 6px 6px 16px rgba(84, 64, 160, 0.25), var(--bd-aro);
   --bd-dialogo-fundo: var(--bd-vidro-brilho);
   --bd-veu: rgba(60, 45, 120, 0.22);
-  /* edição: cor única e a "clay" desenhada só com as cores da borda e uma sombra sem desfoque, baratas de redesenhar */
-  --bd-edicao-card-fundo: #f2eefa;
-  --bd-edicao-card-borda: rgba(255, 255, 255, 0.95) rgba(124, 104, 196, 0.22) rgba(124, 104, 196, 0.22) rgba(255, 255, 255, 0.95);
-  --bd-edicao-card-sombra: 6px 6px 0 rgba(118, 98, 182, 0.14);
-  --bd-edicao-botao-fundo: #f8f6fd;
-  --bd-edicao-cabecalho-fundo: var(--bd-vidro-brilho);
 
   color-scheme: light;
 }
@@ -583,38 +571,10 @@
   box-shadow: var(--bd-sombra);
   border-radius: var(--bd-raio);
 }
-/* em edição os cards tremem e deslizam sem parar, e refazer desfoque e sombras grandes de todos a cada quadro trava a página
-   (no Firefox, principalmente). Até a edição acabar, o vidro fica mais denso, sem desfoque, e a sombra fica curta e barata;
-   a borda iluminada continua. */
-.bd-item[data-editando] > .bd-card {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  /* cor única no lugar do gradiente, e a borda iluminada feita com as cores da borda em vez de sombras internas: o desenho
-     fica parecido e custa uma fração para redesenhar a cada quadro */
-  background: var(--bd-edicao-card-fundo);
-  box-shadow: var(--bd-edicao-card-sombra);
-  border-color: var(--bd-edicao-card-borda);
-  /* recortar o conteúdo nos cantos arredondados é o desenho mais caro de todos com os cards se mexendo (o Firefox refaz a máscara
-     a cada quadro); o conteúdo já cabe no card, então em edição o recorte sai */
-  overflow: visible;
-}
-.bd-item[data-editando] .bd-controles button {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: var(--bd-edicao-botao-fundo);
-  box-shadow: var(--bd-aro);
-}
-.bd-item[data-editando] .bd-controles button:hover {
-  background: var(--bd-acao);
-}
-/* e nada mais da página desfoca o fundo durante a edição */
-.bd[data-editando] :is(.bd-cabecalho, .bd-edicao__dentro, .bd-botao, .bd-filtro select) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-.bd[data-editando] .bd-cabecalho {
-  background: var(--bd-edicao-cabecalho-fundo);
-}
+/* O modo de edição não muda a aparência dos cards, do cabeçalho nem dos gráficos: o que aparece em edição é só o que fica por cima
+   (contorno, alças, botões de editar e remover) e o tremor. Assim o card em edição é sempre o card do tema, e um tema novo não
+   precisa (nem tem como) definir uma versão "de edição". Não criar regras com [data-editando] que troquem fundo, borda, sombra,
+   desfoque ou filtros. */
 .bd-card__titulo {
   font-size: var(--bd-xs);
   font-weight: 600;
@@ -2051,11 +2011,6 @@ mask .bd-cortes {
   transform: scaleY(var(--bd-g-cresce));
 }
 
-/* em edição os filtros saem: o painel inteiro se mexe e eles custariam caro a cada quadro (no Firefox, sobretudo) */
-.bd[data-editando] .bd-item > .bd-card svg * {
-  filter: none !important;
-}
-
 /* ============================================================
    ANIMAÇÕES DE ENTRADA DO CONTEÚDO
    ============================================================ */
@@ -2199,6 +2154,182 @@ mask .bd-cortes {
   background: var(--bd-acao);
   color: var(--bd-texto-inverso);
   border-color: var(--bd-acao);
+}
+.bd-dialogo__acoes {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+/* ---------- menu de cores: o botão fica no topo do diálogo; o painel, preso ao topo da tela ---------- */
+.bd-cores__abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 0.8rem 0 0.6rem;
+  font: inherit;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-texto-secundario);
+  background: var(--bd-vidro-forte);
+  box-shadow: var(--bd-sombra-leve);
+  border: 1px solid var(--bd-vidro-borda);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bd-cores__abrir:hover,
+.bd-cores__abrir[aria-expanded='true'] {
+  color: var(--bd-texto);
+  border-color: var(--bd-acao);
+}
+.bd-cores__abrir svg {
+  transition: transform 0.15s ease;
+}
+.bd-cores__abrir[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.bd-cores__amostras {
+  display: inline-flex;
+}
+.bd-cores__amostras i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bd-superficie, #fff);
+}
+.bd-cores__amostras i + i {
+  margin-left: -4px;
+}
+.bd-cores {
+  position: fixed;
+  inset: 12px auto auto 50%;
+  transform: translateX(-50%);
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--bd-fonte);
+  color: var(--bd-texto);
+  background: var(--bd-dialogo-fundo);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--bd-vidro-borda);
+  box-shadow: var(--bd-sombra-flutuante);
+  border-radius: calc(var(--bd-raio) + 2px);
+}
+.bd-cores:popover-open {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  animation: bd-cores-abre 0.18s ease-out;
+}
+@keyframes bd-cores-abre {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}
+.bd-cores__lista {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100vh - 24px);
+  border-right: 1px solid var(--bd-vidro-borda);
+  background: var(--bd-vidro-leve);
+}
+.bd-cores__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.6rem;
+  font-size: var(--bd-sm);
+}
+.bd-cores__restaurar {
+  padding: 0.2rem 0.6rem;
+  font: inherit;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  color: var(--bd-acao);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.bd-cores__restaurar:hover:not(:disabled) {
+  border-color: currentColor;
+}
+.bd-cores__restaurar:disabled {
+  color: var(--bd-texto-auxiliar);
+  opacity: 0.6;
+  cursor: default;
+}
+.bd-cores__lista ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.5rem 0.75rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.bd-cores__lista label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 0.5rem;
+  font-size: var(--bd-xs);
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bd-cores__lista label:hover {
+  background: var(--bd-vidro);
+}
+.bd-cores__lista label span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-cores__lista input[type='color'] {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--bd-vidro-borda);
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+.bd-cores__lista input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.bd-cores__lista input[type='color']::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+.bd-cores__lista input[type='color']::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+.bd-cores__previa {
+  align-self: center;
+  min-width: 0;
+  margin: 1rem;
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .bd-cores:popover-open {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  .bd-cores__lista {
+    max-height: 40vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--bd-vidro-borda);
+  }
 }
 .bd-dialogo__colunas {
   flex: 1;
@@ -2412,16 +2543,11 @@ mask .bd-cortes {
   --bd-fonte: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --bd-raio: 12px;
   --bd-concluir-sombra: none;
-  --bd-edicao-card-sombra: none;
   --bd-dialogo-fundo: var(--bd-superficie);
-  --bd-edicao-card-fundo: var(--bd-superficie);
-  --bd-edicao-cabecalho-fundo: var(--bd-superficie);
-  --bd-edicao-botao-fundo: var(--bd-superficie-realce);
   --bd-vidro: var(--bd-superficie);
   --bd-vidro-forte: var(--bd-superficie-realce);
   --bd-vidro-leve: var(--bd-superficie-suave);
   --bd-vidro-borda: var(--bd-borda);
-  --bd-edicao-card-borda: var(--bd-borda-forte);
   --bd-botao-borda-hover: var(--bd-borda-forte);
   --bd-faixa-fundo: var(--bd-acao-fundo);
   --bd-faixa-borda: var(--bd-acao-borda);
@@ -2510,7 +2636,7 @@ mask .bd-cortes {
 :is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-botao:hover {
   background: var(--bd-superficie-realce);
 }
-:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-dialogo {
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) :is(.bd-dialogo, .bd-cores) {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }

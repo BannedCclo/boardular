@@ -14,6 +14,13 @@ const keyOf = (id: string) => `boardular:${id}`;
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const isText = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
 
+/** As cores guardadas de um card, se houver alguma válida. */
+function cleanColors(colors: unknown): { colors?: Record<string, string> } {
+  if (!colors || typeof colors !== 'object') return {};
+  const valid = Object.entries(colors).filter(([label, color]) => isText(label) && isText(color));
+  return valid.length ? { colors: Object.fromEntries(valid) } : {};
+}
+
 /** Lê o que está guardado, jogando fora o que não tiver a forma esperada. */
 function read(id: string): DashboardState | null {
   try {
@@ -21,7 +28,7 @@ function read(id: string): DashboardState | null {
     if (!raw || raw.v !== VERSION || !Array.isArray(raw.widgets)) return null;
     const widgets: Widget[] = raw.widgets
       .filter((w: Widget) => w && isText(w.id) && isText(w.source) && isText(w.view) && isNum(w.w) && isNum(w.h))
-      .map((w: Widget) => ({ id: w.id, source: w.source, view: w.view, w: w.w, h: w.h }));
+      .map((w: Widget) => ({ id: w.id, source: w.source, view: w.view, w: w.w, h: w.h, ...cleanColors(w.colors) }));
     const layouts: Record<number, Positions> = {};
     for (const [cols, positions] of Object.entries(raw.layouts ?? {})) {
       const clean: Positions = {};
@@ -57,8 +64,8 @@ export function useDashboard(id: string, preset: Preset, presetCols: number) {
     }
   }, [id, state]);
 
-  const add = useCallback((source: string, view: string, size: { w: number; h: number }) => {
-    const widget: Widget = { id: `w${Date.now().toString(36)}${Math.floor(Math.random() * 36 ** 3).toString(36)}`, source, view, ...size };
+  const add = useCallback((source: string, view: string, size: { w: number; h: number }, colors?: Record<string, string>) => {
+    const widget: Widget = { id: `w${Date.now().toString(36)}${Math.floor(Math.random() * 36 ** 3).toString(36)}`, source, view, ...size, ...cleanColors(colors) };
     setState(s => ({ ...s, widgets: [...s.widgets, widget] }));
     return widget.id;
   }, []);
@@ -86,6 +93,18 @@ export function useDashboard(id: string, preset: Preset, presetCols: number) {
     setState(s => ({ ...s, widgets: s.widgets.map(w => (w.id === widgetId ? { ...w, view, ...size } : w)) }));
   }, []);
 
+  /** Guarda as cores escolhidas para as partes de um card; sem nenhuma, o card volta às cores originais. */
+  const recolor = useCallback((widgetId: string, colors: Record<string, string>) => {
+    setState(s => ({
+      ...s,
+      widgets: s.widgets.map(w => {
+        if (w.id !== widgetId) return w;
+        const { colors: _old, ...rest } = w;
+        return { ...rest, ...cleanColors(colors) };
+      }),
+    }));
+  }, []);
+
   const reset = useCallback(() => setState(fromPreset(preset, presetCols)), [preset, presetCols]);
 
   /** O usuário mudou alguma coisa em relação ao painel de fábrica. */
@@ -95,5 +114,5 @@ export function useDashboard(id: string, preset: Preset, presetCols: number) {
     return JSON.stringify(state.widgets) !== JSON.stringify(preset.widgets) || Object.values(state.layouts).some(p => queue(p) !== factory);
   }, [state, preset]);
 
-  return { state, editing, setEditing, add, remove, commit, swap, reset, customized };
+  return { state, editing, setEditing, add, remove, commit, swap, recolor, reset, customized };
 }
