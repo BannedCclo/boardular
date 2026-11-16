@@ -177,3 +177,10 @@ With `prefers-reduced-motion`, nothing animates.
 ## Keyboard (edit mode)
 
 With a card focused: arrow keys move it earlier or later in the queue, Shift + arrows resize it, Delete removes it. Esc or Enter finish editing.
+
+## License
+
+Boardular is [MIT](LICENSE). Its dependencies are installed from npm under their own licenses and are not bundled into the package:
+
+- `three`, `animejs` (and `react`, as a peer): MIT.
+- `gsap` (including `Draggable` and `CustomEase`): GSAP's [Standard "no charge" license](https://gsap.com/standard-license), free for commercial use. It is not an open source license: it forbids using GSAP in no-code visual animation builders that compete with Webflow. A regular dashboard is fine; if you build such a tool on top of Boardular, check GSAP's terms first.

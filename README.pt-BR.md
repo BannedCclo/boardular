@@ -164,3 +164,10 @@ Com `prefers-reduced-motion` nada anima.
 ## Teclado (modo de edição)
 
 Com o card em foco: setas levam o card para antes ou depois na fila, Shift + setas redimensionam, Delete remove. Esc ou Enter concluem a edição.
+
+## Licença
+
+O Boardular é [MIT](LICENSE). As dependências vêm do npm com as licenças delas e não são embutidas no pacote:
+
+- `three`, `animejs` (e `react`, como peer): MIT.
+- `gsap` (incluindo `Draggable` e `CustomEase`): [licença padrão "sem custo" da GSAP](https://gsap.com/standard-license), gratuita inclusive para uso comercial. Não é uma licença open source: ela proíbe usar o GSAP em ferramentas de animação visual sem código que concorram com o Webflow. Um painel comum está liberado; se você for montar uma ferramenta desse tipo em cima do Boardular, confira antes os termos da GSAP.
