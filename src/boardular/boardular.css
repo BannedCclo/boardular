@@ -262,6 +262,14 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+/* botão só com o ícone (PDF e editar, no cabeçalho): redondo; o nome fica no title e no aria-label */
+.bd-botao--icone {
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  flex: none;
+}
 .bd-botao:hover {
   background: var(--bd-vidro-forte);
   border-color: var(--bd-botao-borda-hover);
@@ -623,8 +631,26 @@
   font-size: var(--bd-2xl);
 }
 .bd-card__espera:not(:has(.bd-loader)) {
+  flex-direction: column;
+  gap: 0.5rem;
   font-size: var(--bd-xs);
   color: var(--bd-texto-auxiliar);
+}
+.bd-card__de-novo {
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--bd-acao);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+}
+/* em edição, as alças e o contorno dos cards da beirada passam um pouco da grade: sem isto a página ganharia rolagem para o lado
+   quando o painel encosta na borda da janela */
+.bd[data-editando] {
+  overflow-x: clip;
+  overflow-clip-margin: 14px;
 }
 .bd-loader {
   display: inline-block;
@@ -2476,6 +2502,10 @@ mask .bd-cortes {
 /* botões e campos com canto de 8px, no lugar da pílula */
 :is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) :is(.bd-botao, .bd-filtro select) {
   border-radius: 8px;
+}
+/* os botões só de ícone continuam redondos */
+:is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-botao.bd-botao--icone {
+  border-radius: 50%;
 }
 :is(:is([data-bd-tema='default'], :root:not([data-bd-tema])), [data-bd-tema='dark']) .bd-botao:hover {
   background: var(--bd-superficie-realce);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
-import gsap from 'gsap';
+import { gsap } from 'gsap';
 import { Draggable } from 'gsap/Draggable';
 import { AddDialog } from './AddDialog';
 import { place, resolve, sameBoxes, type Box, type Sized } from './layout';
@@ -514,15 +514,27 @@ export function Dashboard({ id, title, subtitle, sources, preset, filters, refre
             {subtitle && <p>{subtitle}</p>}
           </div>
           <div className="bd-acoes">
-            <button type="button" className="bd-botao" onClick={() => window.print()} title="Imprimir ou salvar o dashboard em PDF">
+            <button
+              type="button"
+              className="bd-botao bd-botao--icone"
+              onClick={() => window.print()}
+              title="Imprimir ou salvar o dashboard em PDF"
+              aria-label="Imprimir ou salvar o dashboard em PDF"
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polyline points="6 9 6 2 18 2 18 9" />
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                 <rect x="6" y="14" width="12" height="8" />
               </svg>
-              <span>PDF</span>
             </button>
-            <button type="button" className="bd-botao" aria-pressed={editing} onClick={() => setEditing(!editing)}>
+            <button
+              type="button"
+              className="bd-botao bd-botao--icone"
+              aria-pressed={editing}
+              onClick={() => setEditing(!editing)}
+              title={editing ? 'Concluir edição' : 'Editar dashboard'}
+              aria-label={editing ? 'Concluir edição' : 'Editar dashboard'}
+            >
               {editing ? (
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12" />
@@ -530,7 +542,6 @@ export function Dashboard({ id, title, subtitle, sources, preset, filters, refre
               ) : (
                 <IconPencil />
               )}
-              <span>{editing ? 'Concluir edição' : 'Editar dashboard'}</span>
             </button>
           </div>
         </div>
@@ -603,7 +614,7 @@ export function Dashboard({ id, title, subtitle, sources, preset, filters, refre
               </div>
             );
           })}
-        {width > 0 && !items.length && <p className="bd-vazio">O painel está vazio. Use “Editar dashboard” e depois “Adicionar elemento”.</p>}
+        {width > 0 && !items.length && <p className="bd-vazio">O painel está vazio. Use o botão do lápis e depois “Adicionar elemento”.</p>}
       </div>
 
       <AddDialog

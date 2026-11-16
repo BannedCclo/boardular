@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import gsap from 'gsap';
+import { gsap } from 'gsap';
 import { calm, formatNumber, secs, toParts } from '../motion';
 import { FLAT_THEMES, Frame, hideTip, showTip, useTheme } from '../pieces';
 import type { Slice, ViewProps } from '../types';

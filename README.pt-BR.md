@@ -12,7 +12,9 @@ npm install boardular
 
 Precisa de React 18 ou mais novo. `three`, `gsap` e `animejs` vêm junto como dependências. Não há CSS para importar: os estilos entram na página sozinhos quando o primeiro painel aparece.
 
-> Para usar sem publicar no npm: `npm pack` gera `boardular-0.1.0.tgz`, e no outro projeto `npm install ../caminho/boardular-0.1.0.tgz`.
+A interface do painel (modo de edição, catálogo, mensagens de carregamento e de erro) é em português, e os números usam o formato `pt-BR`; `money: true` mostra reais (R$). Ainda não há opção de idioma.
+
+O pacote traz builds ESM e CommonJS, com tipos. A forma "Barras 3D" carrega o `three` sob demanda (cerca de 140 kB com gzip), só quando algum card a usa.
 
 ## Usar
 
@@ -42,7 +44,7 @@ export function Painel() {
 
 Os nomes em inglês também valem: `stat`, `breakdown`, `series`, `list`.
 
-`data` pode ser o valor, uma `Promise` ou uma função que devolve um ou outro. Enquanto ela não resolve, o card mostra o carregando. A função é chamada de novo sempre que a prop `refresh` muda (por exemplo, um filtro de período). Se os dados de um item mudarem, só os cards afetados recarregam e os números giram até o valor novo.
+`data` pode ser o valor, uma `Promise` ou uma função que devolve um ou outro. Enquanto ela não resolve, o card mostra o carregando. Se falhar, o card mostra uma mensagem com um botão de tentar de novo e o erro vai para o console. A função é chamada de novo sempre que a prop `refresh` muda (por exemplo, um filtro de período). Se os dados de um item mudarem, só os cards afetados recarregam e os números giram até o valor novo.
 
 ### Cada item
 

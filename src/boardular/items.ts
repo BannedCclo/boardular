@@ -103,13 +103,20 @@ export function autoView(kind: Kind, data?: unknown): string {
   return s.lines.length > 1 && s.labels.length <= 12 ? 'serie-barras' : 'serie-linha';
 }
 
+const warned = new Set<string>();
+
 /** A forma pedida pelo item, se existir e for do tipo dele; senão, a escolhida pela biblioteca. */
 export function viewOf(item: DashboardItem): string {
   const kind = kindOf(item.type);
   if (item.display) {
     const v = viewById(item.display);
     if (v && v.kind === kind) return v.id;
-    console.warn(`boardular: a forma "${item.display}" não existe para o tipo "${item.type}" (item "${item.title}"). Formas possíveis: ${VIEWS.filter(x => x.kind === kind).map(x => x.id).join(', ')}.`);
+    // avisa uma vez só por item: esta função roda a cada montagem do painel (e duas vezes no StrictMode)
+    const key = `${item.title}\u0000${item.type}\u0000${item.display}`;
+    if (!warned.has(key)) {
+      warned.add(key);
+      console.warn(`boardular: a forma "${item.display}" não existe para o tipo "${item.type}" (item "${item.title}"). Formas possíveis: ${VIEWS.filter(x => x.kind === kind).map(x => x.id).join(', ')}.`);
+    }
   }
   return autoView(kind, item.data);
 }

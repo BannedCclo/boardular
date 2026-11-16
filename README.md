@@ -14,7 +14,9 @@ npm install boardular
 
 Requires React 18 or newer. `three`, `gsap` and `animejs` come along as dependencies. There is no CSS to import: the styles are added to the page by the first dashboard that renders.
 
-To try it without publishing to npm: `npm pack` creates `boardular-0.1.0.tgz`; in your project run `npm install ../path/to/boardular-0.1.0.tgz`.
+The dashboard's own interface (edit mode, the catalog, loading and error messages) is in Portuguese, and numbers use the `pt-BR` format; `money: true` shows Brazilian reais (R$). There is no language option yet.
+
+The package ships ESM and CommonJS builds, with types. The 3D bars display loads `three` on demand (about 140 kB gzipped), only when a card uses it.
 
 ## Usage
 
@@ -44,7 +46,7 @@ export function Panel() {
 
 The Portuguese names work too: `indicador`, `distribuicao`, `serie`, `lista`.
 
-`data` can be the value itself, a `Promise`, or a function returning either. While it is pending, the card shows a loader. The function runs again whenever the `refresh` prop changes (a period filter, for example). When an item's data changes, only the affected cards reload, and numbers roll to their new value.
+`data` can be the value itself, a `Promise`, or a function returning either. While it is pending, the card shows a loader. If it fails, the card shows a message with a retry button and the error is logged to the console. The function runs again whenever the `refresh` prop changes (a period filter, for example). When an item's data changes, only the affected cards reload, and numbers roll to their new value.
 
 ### Item fields
 

@@ -1,4 +1,4 @@
-import { Suspense, memo, useContext, useEffect, useMemo, useState } from 'react';
+import { Suspense, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Size } from './layout';
 import { CardLook, Loader } from './pieces';
 import type { Source, ViewDef } from './types';
@@ -7,6 +7,7 @@ import type { Source, ViewDef } from './types';
 export function useSourceData(source: Source, refresh: unknown) {
   const [data, setData] = useState<unknown>(null);
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -15,14 +16,20 @@ export function useSourceData(source: Source, refresh: unknown) {
       .then(() => source.load())
       .then(
         loaded => alive && setData(loaded),
-        () => alive && setFailed(true)
+        error => {
+          if (!alive) return;
+          // o card só diz que não deu: o motivo vai para o console, para quem está montando o painel
+          console.error(`boardular: não foi possível carregar "${source.title}".`, error);
+          setFailed(true);
+        }
       );
     return () => {
       alive = false;
     };
-  }, [source, refresh]);
+  }, [source, refresh, attempt]);
 
-  return { data, failed };
+  const retry = useCallback(() => setAttempt(n => n + 1), []);
+  return { data, failed, retry };
 }
 
 interface Props {
@@ -45,7 +52,7 @@ function Waiting({ title, children }: { title: string; children: React.ReactNode
 
 /** O miolo de um card: carrega os dados da fonte e os entrega à forma de exibição, com a classe e o estilo que a fonte der ao card. */
 export const WidgetBody = memo(function WidgetBody({ source, view, size, refresh }: Props) {
-  const { data, failed } = useSourceData(source, refresh);
+  const { data, failed, retry } = useSourceData(source, refresh);
   const look = useMemo(() => ({ className: source.className, style: source.style }), [source.className, source.style]);
   const waiting = (
     <Waiting title={source.title}>
@@ -56,7 +63,12 @@ export const WidgetBody = memo(function WidgetBody({ source, view, size, refresh
   return (
     <CardLook.Provider value={look}>
       {failed && data === null ? (
-        <Waiting title={source.title}>Não foi possível carregar.</Waiting>
+        <Waiting title={source.title}>
+          <span>Não foi possível carregar.</span>
+          <button type="button" className="bd-card__de-novo" data-clickable="true" onClick={retry}>
+            Tentar de novo
+          </button>
+        </Waiting>
       ) : data === null ? (
         waiting
       ) : (

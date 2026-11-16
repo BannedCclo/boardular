@@ -15,8 +15,9 @@ export default defineConfig({
       fileName: format => (format === 'es' ? 'boardular.js' : 'boardular.cjs'),
     },
     rollupOptions: {
-      // React vem do app; three, gsap e animejs são dependências do pacote (instaladas junto, não embutidas)
-      external: [/^react($|\/)/, /^react-dom($|\/)/, /^three($|\/)/, /^gsap($|\/)/, /^animejs($|\/)/],
+      // React vem do app; three, gsap e animejs são dependências do pacote (instaladas junto, não embutidas).
+      // Os extras do three (three/examples) entram embutidos: só existem em ESM e quebrariam o require() do build CommonJS
+      external: [/^react($|\/)/, /^react-dom($|\/)/, /^three$/,/^gsap($|\/)/, /^animejs($|\/)/],
     },
   },
 });

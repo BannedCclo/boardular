@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { animate, stagger } from 'animejs';
-import gsap from 'gsap';
+import { gsap } from 'gsap';
 import { EASE_OUT, calm, secs } from './motion';
 import type { Source, ViewDef } from './types';
 import { viewsFor } from './views';
