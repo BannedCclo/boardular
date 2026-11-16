@@ -1,6 +1,6 @@
 {
   "name": "boardular",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A modular React dashboard built from JSON: declare each item's title, type and data, and Boardular picks how to display it. Draggable, resizable cards; default, dark, glass and clay themes.",
   "license": "MIT",
   "author": "BannedCclo",
