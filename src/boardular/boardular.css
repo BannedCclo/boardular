@@ -1802,12 +1802,12 @@ mask .bd-cortes {
   stroke: #000;
 }
 /* pontas redondas só nas pontas do gráfico: num arco de uma parte só (medidor, anéis) as duas pontas da parte são as do gráfico;
-   num arco dividido as divisas de dentro ficam retas, a rosca (fechada) não tem ponta e a meia-lua ganha as duas pontas à parte (.bd-ponta) */
+   num arco dividido as divisas de dentro ficam retas, a rosca (fechada) não tem ponta e na meia-lua só a primeira e a última parte arredondam, cortadas retas na divisa (useRoundEnds) */
 [data-bd-tema='clay'] .bd-card:is(.is-medidor, .is-aneis) .bd-grafico :is(.bd-arco, .bd-arco-foco, .bd-trilho),
 [data-bd-tema='clay'] .is-meia-lua .bd-trilho {
   stroke-linecap: round;
 }
-/* meia-lua: as partes e as pontas levam o brilho ou o relevo juntas, no grupo, para não ter emenda entre a ponta e a sua parte */
+/* meia-lua: o brilho ou o relevo vai no grupo das partes (e no do realce), um só para todas */
 .is-meia-lua .bd-arcos {
   filter: var(--bd-f-vidro);
 }
@@ -1824,21 +1824,8 @@ mask .bd-cortes {
 [data-bd-tema='clay'] .is-meia-lua .bd-focos {
   filter: var(--bd-f-relevo);
 }
-.is-meia-lua .bd-grafico .bd-focos :is(.bd-arco-foco, .bd-ponta-foco) {
+.is-meia-lua .bd-grafico .bd-focos .bd-arco-foco {
   filter: none;
-}
-.bd-ponta {
-  animation: bd-opaco 0.2s ease-out backwards;
-  animation-delay: calc(var(--bd-inicio) + var(--ini, 0) * var(--bd-varre) / 100);
-}
-.bd-ponta-foco {
-  pointer-events: none;
-  opacity: 0;
-  filter: var(--bd-f-relevo);
-  transition: opacity var(--bd-hover);
-}
-.bd-ponta-foco.is-ativo {
-  opacity: 1;
 }
 .bd-cortes {
   pointer-events: none;
@@ -2072,7 +2059,7 @@ mask .bd-cortes {
 /* o arco nasce invisível: com ponta redonda, um traço de comprimento zero já seria uma bolinha esperando a vez */
 @keyframes bd-arco {
   from {
-    stroke-dasharray: 0 100;
+    stroke-dasharray: 0 200;
     stroke-opacity: 0;
   }
   1% {

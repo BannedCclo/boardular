@@ -43,6 +43,8 @@ export default function Bars3D({ data, title }: ViewProps<Slice[]>) {
   const [focus, setFocus] = useState<number | null>(null);
   /** Aplica o destaque na cena (definida pelo efeito que monta a cena; muda quando a cena é refeita). */
   const highlight = useRef<(i: number | null) => void>(() => {});
+  /** A entrada completa (palco, câmera e chão) já tocou até o fim: quando a cena é refeita, só as barras sobem de novo. */
+  const introDone = useRef(false);
 
   useEffect(() => {
     const el = host.current;
@@ -71,12 +73,17 @@ export default function Bars3D({ data, title }: ViewProps<Slice[]>) {
     sun.position.set(4, 8, 6);
     scene.add(sun);
 
+    // o palco leva o movimento da entrada (gira, aproxima e assenta); o giro contínuo fica no grupo de dentro, sem um brigar com o outro
+    const stage = new THREE.Group();
+    scene.add(stage);
     const group = new THREE.Group();
     group.rotation.y = -0.55;
-    scene.add(group);
+    stage.add(group);
 
     const [gridMain, gridLine] = clay ? [0xc4b8ea, 0xdcd4f2] : flat ? (dark ? [0x3d444d, 0x2f3742] : [0xcbd5e1, 0xe2e8f0]) : [0x5d6280, 0x34374b];
     const grid = new THREE.GridHelper(span + 1.5, parts.length + 2, gridMain, gridLine);
+    const gridMat = grid.material as THREE.LineBasicMaterial;
+    gridMat.transparent = true;
     group.add(grid);
 
     const max = Math.max(...parts.map(p => p.value), 1);
@@ -144,16 +151,62 @@ export default function Bars3D({ data, title }: ViewProps<Slice[]>) {
       return bar;
     });
 
-    const grow = gsap.to(
-      bars.map(b => b.scale),
-      { y: 1, duration: secs(1.2), ease: 'elastic.out(1, 0.75)', stagger: secs(0.09) }
-    );
+    // entrada. Na primeira vez: o palco chega de longe, girado de lado, enquanto a câmera desce até o lugar; o chão se abre do centro e
+    // as barras sobem uma a uma, com mola; no vidro, as arestas e os vértices acendem logo depois que cada barra chega. Quando a cena é
+    // refeita (dados novos, outro tema), só as barras sobem de novo. O giro contínuo espera a entrada acabar.
+    const full = !introDone.current;
+    let entering = true;
+    const intro = gsap.timeline({
+      paused: true,
+      onComplete: () => {
+        entering = false;
+        if (full) introDone.current = true;
+      },
+    });
+    const look = new THREE.Vector3(0, 1.5, 0);
+    const lit = rims.filter(Boolean);
+    lit.forEach(r => {
+      r.line.opacity = 0;
+      r.dots.opacity = 0;
+    });
+    if (full) {
+      const end = camera.position.clone();
+      stage.rotation.y = -0.9;
+      stage.scale.setScalar(0.82);
+      camera.position.set(end.x, end.y + 2.6, end.z + 3.5);
+      camera.lookAt(look);
+      grid.scale.setScalar(0.4);
+      gridMat.opacity = 0;
+      const t = secs(1.4);
+      intro
+        .to(stage.rotation, { y: 0, duration: t, ease: 'power3.out' }, 0)
+        .to(stage.scale, { x: 1, y: 1, z: 1, duration: t, ease: 'power3.out' }, 0)
+        .to(camera.position, { x: end.x, y: end.y, z: end.z, duration: t, ease: 'power3.out', onUpdate: () => camera.lookAt(look) }, 0)
+        .to(grid.scale, { x: 1, y: 1, z: 1, duration: secs(0.8), ease: 'power2.out' }, 0)
+        .to(gridMat, { opacity: 1, duration: secs(0.5), ease: 'none' }, 0);
+    }
+    const rise = full ? secs(0.3) : 0;
+    intro.to(bars.map(b => b.scale), { y: 1, duration: secs(1.2), ease: 'elastic.out(1, 0.75)', stagger: secs(0.09) }, rise);
+    if (lit.length) {
+      intro
+        .to(lit.map(r => r.line), { opacity: 0.9, duration: secs(0.4), ease: 'power1.out', stagger: secs(0.09) }, rise + secs(0.35))
+        .to(lit.map(r => r.dots), { opacity: 1, duration: secs(0.4), ease: 'power1.out', stagger: secs(0.09) }, rise + secs(0.45));
+    }
+    // começa quando o painel libera o card (ele já chegou e apareceu na tela), como o conteúdo dos outros cards; fora do painel
+    // (a prévia do catálogo), começa logo
+    const item = el.closest('.bd-item');
+    const play = () => intro.play();
+    const waiting = !!item?.classList.contains('is-espera');
+    if (waiting) item!.addEventListener('bd:liberado', play, { once: true });
+    else play();
 
     // destaque: a barra sobe um pouco e engorda; as outras esmaecem (como nos outros gráficos). O giro para enquanto há destaque,
     // para a barra não fugir do mouse
     const base = solid ? 1 : 0.4;
     let held: number | null = null;
     highlight.current = i => {
+      // nada mudou (como na montagem, sem destaque): não mexe, para não atropelar a entrada
+      if (i === held) return;
       held = i;
       const t = secs(0.22);
       bars.forEach((bar, k) => {
@@ -196,7 +249,7 @@ export default function Bars3D({ data, title }: ViewProps<Slice[]>) {
     const still = calm();
     let frame = 0;
     const draw = () => {
-      if (!still && held === null) group.rotation.y += 0.0035;
+      if (!still && held === null && !entering) group.rotation.y += 0.0035;
       renderer.render(scene, camera);
       frame = requestAnimationFrame(draw);
     };
@@ -220,7 +273,8 @@ export default function Bars3D({ data, title }: ViewProps<Slice[]>) {
       gsap.killTweensOf(bars.flatMap(b => [b.position, b.scale, b.material]));
       cancelAnimationFrame(frame);
       observer.disconnect();
-      grow.kill();
+      if (waiting) item!.removeEventListener('bd:liberado', play);
+      intro.kill();
       geometries.forEach(g => g.dispose());
       bars.forEach(b => (b.material as THREE.Material).dispose());
       extras.forEach(x => x.dispose());

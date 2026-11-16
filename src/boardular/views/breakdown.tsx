@@ -176,7 +176,7 @@ interface Segment {
 
 /**
  * Onde cada parte de um arco dividido aparece: entre duas vizinhas, uma divisa reta com sempre o mesmo vão; a ponta de fora de um arco
- * aberto não recua (é a ponta do gráfico, que a argila arredonda à parte, em <Caps>).
+ * aberto não recua (é a ponta do gráfico, que a argila arredonda em useRoundEnds).
  */
 function useSegments(parts: Part[], pct: (i: number) => number, start: (i: number) => number, o: { closed: boolean; length: number; px: (n: number) => number }) {
   const flat = useFlat();
@@ -196,37 +196,48 @@ function useSegments(parts: Part[], pct: (i: number) => number, start: (i: numbe
 }
 
 /**
- * A ponta redonda de cada extremo do ARC (que começa em 10,50 e termina em 90,50 subindo), do raio de meia espessura do traço. É um
- * meia volta de fora mais uma aba de 1 unidade que entra por baixo do arco, na mesma cor: assim não há borda de encontro (o
- * antisserrilhado de duas bordas encostadas deixava um fio claro na emenda). A aba é curta para não passar de uma parte bem pequena
- * até o vão da vizinha (ali o arco ainda é praticamente vertical, então ela fica dentro do traço).
+ * Recorte em cunha, a partir do centro do ARC, entre duas posições do arco (em 1/100 dele; de -50 a 150 vai de "para baixo" pela
+ * esquerda até "para baixo" pela direita). A borda da cunha é radial, como a divisa reta entre duas partes.
  */
-const capAt = (x: number, r: number) => `M ${x - r} 49 L ${x + r} 49 L ${x + r} 50 A ${r} ${r} 0 0 1 ${x - r} 50 Z`;
+function wedge(t0: number, t1: number) {
+  const at = (t: number) => {
+    const a = Math.PI * (1 + t / 100);
+    return `${(50 + 200 * Math.cos(a)).toFixed(3)} ${(50 + 200 * Math.sin(a)).toFixed(3)}`;
+  };
+  const pts = ['50 50', at(t0)];
+  for (let t = Math.ceil(t0 / 10) * 10; t < t1; t += 10) if (t > t0) pts.push(at(t));
+  pts.push(at(t1));
+  return pts.join(' ');
+}
 
 /**
- * As pontas redondas de um arco dividido, só nas duas pontas do gráfico (as divisas de dentro ficam retas): na cor da primeira e da
- * última parte. Cada uma aparece quando a varredura de entrada chega nela.
+ * Na argila, as pontas do gráfico são redondas e as divisas de dentro retas. A primeira e a última parte usam a ponta redonda do
+ * próprio traço, cortada reta na divisa de dentro por uma cunha: uma forma só por parte, sem peça avulsa nem emenda, e a ponta
+ * acompanha o traço quando ele engrossa no realce. Devolve, para cada parte, a ponta e o recorte que ela leva.
  */
-function Caps({ parts, focus, width, className }: { parts: Part[]; focus?: number | null; width: number; className: string }) {
-  const shown = parts.filter(p => p.pct > 0);
-  if (!shown.length) return null;
-  const ends = [
-    { part: shown[0], x: 10, at: 0 },
-    { part: shown[shown.length - 1], x: 90, at: 100 },
-  ];
-  return (
-    <>
-      {ends.map(({ part, x, at }) => (
-        <path
-          key={x}
-          className={`${className}${focus !== undefined && focus === parts.indexOf(part) ? ' is-ativo' : ''}`}
-          d={capAt(x, width / 2)}
-          fill={part.color}
-          style={vars({ '--ini': at })}
-        />
+function useRoundEnds(parts: Part[], seg: Segment[], on: boolean) {
+  const id = `bdponta${useId().replace(/[^\w-]/g, '')}`;
+  const shown = parts.map((_, i) => i).filter(i => !seg[i].hidden);
+  const first = shown[0];
+  const last = shown[shown.length - 1];
+  const clips: { id: string; points: string }[] = [];
+  const ends = parts.map((_, i) => {
+    if (!on || (i !== first && i !== last)) return {};
+    if (first === last) return { strokeLinecap: 'round' as const };
+    const points = i === first ? wedge(-50, seg[i].from + seg[i].len) : wedge(seg[i].from, 150);
+    clips.push({ id: `${id}-${i}`, points });
+    return { strokeLinecap: 'round' as const, clipPath: `url(#${id}-${i})` };
+  });
+  const defs = clips.length ? (
+    <defs>
+      {clips.map(c => (
+        <clipPath key={c.id} id={c.id}>
+          <polygon points={c.points} />
+        </clipPath>
       ))}
-    </>
-  );
+    </defs>
+  ) : null;
+  return { ends, defs };
 }
 
 export function GaugeView({ data, title }: Props) {
@@ -283,7 +294,7 @@ export function HalfMoonView({ data, title }: Props) {
   const { parts, total, pct, start, focus } = useParts(data);
   const fx = useChartFx({ width: 100, height: 52 });
   const seg = useSegments(parts, pct, start, { closed: false, length: ARC_LENGTH, px: fx.px });
-  const clay = useTheme() === 'clay';
+  const round = useRoundEnds(parts, seg, useTheme() === 'clay');
   return (
     <Frame form="meia-lua" title={title}>
       <div className="bd-lado">
@@ -291,10 +302,9 @@ export function HalfMoonView({ data, title }: Props) {
         <figure className="bd-grafico is-arco" role="img" aria-label={parts.map(p => `${p.label}: ${p.pct}%`).join(', ')}>
           <svg viewBox="0 0 100 52" aria-hidden="true" ref={fx.ref} style={fx.style}>
             {fx.defs}
+            {round.defs}
             <path className="bd-trilho" d={ARC} pathLength={100} />
-            {/* as partes e as pontas num grupo só: o relevo (ou o brilho) é um só, sem emenda entre a ponta e a sua parte */}
             <g className={`bd-arcos${focus[0] !== null ? ' is-apagado' : ''}`}>
-              {clay && <Caps parts={parts} width={12} className="bd-ponta" />}
               {parts.map((p, i) => (
                 <path
                   key={p.label}
@@ -305,6 +315,7 @@ export function HalfMoonView({ data, title }: Props) {
                   strokeDasharray={`${seg[i].len} 100`}
                   strokeDashoffset={-seg[i].from}
                   visibility={seg[i].hidden ? 'hidden' : undefined}
+                  {...round.ends[i]}
                   style={vars({ '--ini': p.start, '--pct': p.pct })}
                   onMouseEnter={() => focus[1](i)}
                   onMouseLeave={() => focus[1](null)}
@@ -312,7 +323,6 @@ export function HalfMoonView({ data, title }: Props) {
                 />
               ))}
             </g>
-            {/* o realce e a sua ponta também num grupo só, com um relevo (ou vidro) para os dois: sem emenda entre eles */}
             <g className="bd-focos">
               {parts.map((p, i) => (
                 <path
@@ -324,9 +334,9 @@ export function HalfMoonView({ data, title }: Props) {
                   strokeDasharray={`${seg[i].len} 100`}
                   strokeDashoffset={-seg[i].from}
                   visibility={seg[i].hidden ? 'hidden' : undefined}
+                  {...round.ends[i]}
                 />
               ))}
-              {clay && <Caps parts={parts} focus={focus[0]} width={15} className="bd-ponta-foco" />}
             </g>
           </svg>
           <span className="bd-abaixo" style={vars({ '--n': digits(total) })}>
